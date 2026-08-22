@@ -82,7 +82,6 @@ export function LoginPage() {
           </p>
           <p className="mx-auto mt-3 max-w-md text-sm text-primary-100 sm:text-base lg:mx-0">
             Hier zie je wat er in huis speelt: een foto, een korte tekst en wanneer het is.
-            Anderen zien alleen de naam die jij kiest.
           </p>
         </div>
 
