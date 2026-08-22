@@ -5,6 +5,11 @@ import { toPublicUser } from "../publicUser.js";
 
 const router = Router();
 
+function parseId(value) {
+  const id = Number.parseInt(String(value), 10);
+  return Number.isInteger(id) && id > 0 ? id : null;
+}
+
 function normalizeEmail(email) {
   return String(email || "").trim().toLowerCase();
 }
@@ -80,7 +85,9 @@ router.post("/invites", async (req, res) => {
 });
 
 router.delete("/invites/:id", async (req, res) => {
-  const result = await query("DELETE FROM editor_invites WHERE id = $1 RETURNING id", [req.params.id]);
+  const id = parseId(req.params.id);
+  if (!id) return res.status(404).json({ error: "Deze uitnodiging bestaat niet." });
+  const result = await query("DELETE FROM editor_invites WHERE id = $1 RETURNING id", [id]);
   if (result.rowCount === 0) {
     return res.status(404).json({ error: "Deze uitnodiging bestaat niet." });
   }
@@ -93,20 +100,22 @@ router.patch("/:id/role", async (req, res) => {
     return res.status(400).json({ error: "Kies bewoner of iemand die mag plaatsen." });
   }
 
-  const target = await query("SELECT id, username, role FROM users WHERE id = $1", [req.params.id]);
+  const id = parseId(req.params.id);
+  if (!id) return res.status(404).json({ error: "Deze gebruiker bestaat niet." });
+  const target = await query("SELECT id, username, role FROM users WHERE id = $1", [id]);
   if (target.rowCount === 0) {
     return res.status(404).json({ error: "Deze gebruiker bestaat niet." });
   }
   if (target.rows[0].role === "creator") {
     return res.status(400).json({ error: "De beheerder kan niet worden gewijzigd." });
   }
-  if (Number(req.params.id) === req.user.id && role !== "creator") {
+  if (id === req.user.id && role !== "creator") {
     return res.status(400).json({ error: "Gebruik ‘Test als’ om jezelf tijdelijk te wisselen." });
   }
 
   const updated = await query(
     "UPDATE users SET role = $1 WHERE id = $2 RETURNING id, username, role",
-    [role, req.params.id],
+    [role, id],
   );
 
   res.json({ user: toPublicUser(updated.rows[0]) });

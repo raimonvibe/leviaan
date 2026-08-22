@@ -6,7 +6,7 @@ export function signToken(user) {
   return jwt.sign(
     { sub: user.id, role: user.role },
     process.env.JWT_SECRET,
-    { expiresIn: "14d" },
+    { expiresIn: "14d", algorithm: "HS256" },
   );
 }
 
@@ -19,7 +19,7 @@ export async function requireAuth(req, res, next) {
       return res.status(401).json({ error: "Je bent niet ingelogd." });
     }
 
-    const payload = jwt.verify(token, process.env.JWT_SECRET);
+    const payload = jwt.verify(token, process.env.JWT_SECRET, { algorithms: ["HS256"] });
     const result = await query(
       "SELECT id, google_id, email, username, role, created_at FROM users WHERE id = $1",
       [payload.sub],

@@ -17,7 +17,7 @@ const isLocal = /localhost|127\.0\.0\.1/.test(connectionString);
 
 export const pool = new Pool({
   connectionString,
-  ssl: isLocal ? false : { rejectUnauthorized: false },
+  ssl: isLocal ? false : { rejectUnauthorized: true },
   max: 10,
 });
 

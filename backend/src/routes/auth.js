@@ -97,7 +97,7 @@ router.post("/google", async (req, res) => {
       suggestedUsername: !user.username ? usernameFromGoogle(payload) : null,
     });
   } catch (error) {
-    console.error("Google login failed:", error);
+    console.error("Google login failed:", error?.message || "unknown error");
     return res.status(401).json({ error: "Inloggen met Google is niet gelukt." });
   }
 });

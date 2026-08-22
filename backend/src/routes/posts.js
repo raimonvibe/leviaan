@@ -5,6 +5,12 @@ import { isEditorRole, toPublicUser } from "../publicUser.js";
 
 const router = Router();
 const MAX_IMAGE_CHARS = 1_800_000;
+const SAFE_IMAGE = /^data:image\/(jpeg|jpg|png|webp|gif);base64,[A-Za-z0-9+/=\r\n]+$/i;
+
+function parseId(value) {
+  const id = Number.parseInt(String(value), 10);
+  return Number.isInteger(id) && id > 0 ? id : null;
+}
 
 function mapPost(row, extras = {}) {
   return {
@@ -97,11 +103,11 @@ function validatePost({ title, body, activityDate, activityEndDate, imageData, r
     return { error: "Voeg een afbeelding toe." };
   }
   if (cleanImage) {
-    if (!cleanImage.startsWith("data:image/")) {
-      return { error: "De afbeelding is geen geldig bestand." };
+    if (!SAFE_IMAGE.test(cleanImage) || /svg/i.test(cleanImage.slice(0, 40))) {
+      return { error: "Kies een gewone foto (JPG, PNG, WebP of GIF)." };
     }
     if (cleanImage.length > MAX_IMAGE_CHARS) {
-      return { error: "De afbeelding is te groot. Kies een kleinere foto." };
+      return { error: "De foto is te groot. Kies een kleinere foto." };
     }
   }
 
@@ -152,7 +158,9 @@ router.get("/trash", requireAuth, requireUsername, requireEditor, async (req, re
 });
 
 router.get("/:id", requireAuth, requireUsername, async (req, res) => {
-  const result = await query(`${postSelect} WHERE p.id = $1 AND p.deleted_at IS NULL`, [req.params.id]);
+  const id = parseId(req.params.id);
+  if (!id) return res.status(404).json({ error: "Dit bericht bestaat niet." });
+  const result = await query(`${postSelect} WHERE p.id = $1 AND p.deleted_at IS NULL`, [id]);
   if (result.rowCount === 0) {
     return res.status(404).json({ error: "Dit bericht bestaat niet." });
   }
@@ -179,9 +187,11 @@ router.post("/", requireAuth, requireUsername, requireEditor, async (req, res) =
 });
 
 router.put("/:id", requireAuth, requireUsername, requireEditor, async (req, res) => {
+  const id = parseId(req.params.id);
+  if (!id) return res.status(404).json({ error: "Dit bericht bestaat niet." });
   const existing = await query(
     "SELECT id, image_data FROM posts WHERE id = $1 AND deleted_at IS NULL",
-    [req.params.id],
+    [id],
   );
   if (existing.rowCount === 0) {
     return res.status(404).json({ error: "Dit bericht bestaat niet." });
@@ -200,21 +210,23 @@ router.put("/:id", requireAuth, requireUsername, requireEditor, async (req, res)
     `UPDATE posts
      SET title = $1, body = $2, activity_date = $3, activity_end_date = $4, image_data = $5
      WHERE id = $6 AND deleted_at IS NULL`,
-    [parsed.title, parsed.body, parsed.activityDate, parsed.activityEndDate, parsed.imageData, req.params.id],
+    [parsed.title, parsed.body, parsed.activityDate, parsed.activityEndDate, parsed.imageData, id],
   );
 
-  const updated = await query(`${postSelect} WHERE p.id = $1`, [req.params.id]);
+  const updated = await query(`${postSelect} WHERE p.id = $1`, [id]);
   const [post] = await withAttendance(updated.rows, req.user);
   res.json({ post });
 });
 
 router.delete("/:id", requireAuth, requireUsername, requireEditor, async (req, res) => {
+  const id = parseId(req.params.id);
+  if (!id) return res.status(404).json({ error: "Dit bericht bestaat niet." });
   const result = await query(
     `UPDATE posts
      SET deleted_at = CURRENT_TIMESTAMP
      WHERE id = $1 AND deleted_at IS NULL
      RETURNING id`,
-    [req.params.id],
+    [id],
   );
   if (result.rowCount === 0) {
     return res.status(404).json({ error: "Dit bericht bestaat niet." });
@@ -223,23 +235,27 @@ router.delete("/:id", requireAuth, requireUsername, requireEditor, async (req, r
 });
 
 router.post("/:id/restore", requireAuth, requireUsername, requireEditor, async (req, res) => {
+  const id = parseId(req.params.id);
+  if (!id) return res.status(404).json({ error: "Dit bericht staat niet in de prullenbak." });
   const result = await query(
     `UPDATE posts
      SET deleted_at = NULL
      WHERE id = $1 AND deleted_at IS NOT NULL
      RETURNING id`,
-    [req.params.id],
+    [id],
   );
   if (result.rowCount === 0) {
     return res.status(404).json({ error: "Dit bericht staat niet in de prullenbak." });
   }
-  const restored = await query(`${postSelect} WHERE p.id = $1`, [req.params.id]);
+  const restored = await query(`${postSelect} WHERE p.id = $1`, [id]);
   const [post] = await withAttendance(restored.rows, req.user);
   res.json({ post });
 });
 
 router.post("/:id/attend", requireAuth, requireUsername, async (req, res) => {
-  const existing = await query("SELECT id FROM posts WHERE id = $1 AND deleted_at IS NULL", [req.params.id]);
+  const id = parseId(req.params.id);
+  if (!id) return res.status(404).json({ error: "Dit bericht bestaat niet." });
+  const existing = await query("SELECT id FROM posts WHERE id = $1 AND deleted_at IS NULL", [id]);
   if (existing.rowCount === 0) {
     return res.status(404).json({ error: "Dit bericht bestaat niet." });
   }
@@ -247,16 +263,18 @@ router.post("/:id/attend", requireAuth, requireUsername, async (req, res) => {
     `INSERT INTO attendances (post_id, user_id)
      VALUES ($1, $2)
      ON CONFLICT (post_id, user_id) DO NOTHING`,
-    [req.params.id, req.user.id],
+    [id, req.user.id],
   );
-  const result = await query(`${postSelect} WHERE p.id = $1`, [req.params.id]);
+  const result = await query(`${postSelect} WHERE p.id = $1`, [id]);
   const [post] = await withAttendance(result.rows, req.user);
   res.json({ post });
 });
 
 router.delete("/:id/attend", requireAuth, requireUsername, async (req, res) => {
-  await query("DELETE FROM attendances WHERE post_id = $1 AND user_id = $2", [req.params.id, req.user.id]);
-  const result = await query(`${postSelect} WHERE p.id = $1 AND p.deleted_at IS NULL`, [req.params.id]);
+  const id = parseId(req.params.id);
+  if (!id) return res.status(404).json({ error: "Dit bericht bestaat niet." });
+  await query("DELETE FROM attendances WHERE post_id = $1 AND user_id = $2", [id, req.user.id]);
+  const result = await query(`${postSelect} WHERE p.id = $1 AND p.deleted_at IS NULL`, [id]);
   if (result.rowCount === 0) {
     return res.status(404).json({ error: "Dit bericht bestaat niet." });
   }
@@ -265,9 +283,11 @@ router.delete("/:id/attend", requireAuth, requireUsername, async (req, res) => {
 });
 
 router.delete("/:id/permanent", requireAuth, requireUsername, requireEditor, async (req, res) => {
+  const id = parseId(req.params.id);
+  if (!id) return res.status(404).json({ error: "Dit bericht staat niet in de prullenbak." });
   const result = await query(
     "DELETE FROM posts WHERE id = $1 AND deleted_at IS NOT NULL RETURNING id",
-    [req.params.id],
+    [id],
   );
   if (result.rowCount === 0) {
     return res.status(404).json({ error: "Dit bericht staat niet in de prullenbak." });
