@@ -75,19 +75,6 @@ export function PrivacyPage() {
               eerst in de prullenbak.
             </p>
           </section>
-
-          <section className="card rounded-lg p-5">
-            <h2 className="font-serif text-xl">Iets laten weghalen?</h2>
-            <p className="mt-2 leading-relaxed">
-              Vraag het aan de beheerder van dit bord. Die kan iemands rol aanpassen of een
-              activiteit terugzetten of wissen. Voor de privacy van Leviaan als organisatie, kijk
-              op{" "}
-              <a className="underline decoration-accent-400 underline-offset-4" href="https://www.leviaan.nl" target="_blank" rel="noreferrer">
-                leviaan.nl
-              </a>
-              .
-            </p>
-          </section>
         </div>
 
         <Link to="/" className="btn btn-secondary mt-8">
