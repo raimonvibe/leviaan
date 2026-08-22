@@ -76,8 +76,14 @@ router.post("/google", async (req, res) => {
       );
       user = created.rows[0];
     } else {
-      const nextRole = user.role === "creator" ? "creator" : await resolveRole(email);
-      if (nextRole !== user.role && user.role !== "creator") {
+      let nextRole = user.role;
+      if (email === creatorEmail()) {
+        nextRole = "creator";
+      } else if (user.role === "visitor") {
+        nextRole = await resolveRole(email);
+      }
+
+      if (nextRole !== user.role || user.google_id !== googleId) {
         const updated = await query(
           "UPDATE users SET role = $1, google_id = $2 WHERE id = $3 RETURNING id, google_id, email, username, role",
           [nextRole, googleId, user.id],

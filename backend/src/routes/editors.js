@@ -102,7 +102,7 @@ router.patch("/:id/role", async (req, res) => {
 
   const id = parseId(req.params.id);
   if (!id) return res.status(404).json({ error: "Deze gebruiker bestaat niet." });
-  const target = await query("SELECT id, username, role FROM users WHERE id = $1", [id]);
+  const target = await query("SELECT id, username, role, email FROM users WHERE id = $1", [id]);
   if (target.rowCount === 0) {
     return res.status(404).json({ error: "Deze gebruiker bestaat niet." });
   }
@@ -117,6 +117,9 @@ router.patch("/:id/role", async (req, res) => {
     "UPDATE users SET role = $1 WHERE id = $2 RETURNING id, username, role",
     [role, id],
   );
+  if (role === "visitor" && target.rows[0].email) {
+    await query("DELETE FROM editor_invites WHERE email = $1", [target.rows[0].email]);
+  }
 
   res.json({ user: toPublicUser(updated.rows[0]) });
 });

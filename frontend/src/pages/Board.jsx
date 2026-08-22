@@ -75,7 +75,9 @@ export function BoardPage() {
         <div className="min-w-0">
           <h1 className="page-title">Wat speelt er?</h1>
           <p className="mt-1 max-w-xl text-sm text-primary-600 dark:text-primary-200">
-            Zeg of je meedoet. Andere bewoners zien niet wie er nog meer komt.
+            {isEditor
+              ? "Jij ziet wie er meedoet. Bewoners zien alleen hun eigen vinkje."
+              : "Zeg of je meedoet. Andere bewoners zien niet wie er nog meer komt."}
           </p>
         </div>
         {isEditor ? (

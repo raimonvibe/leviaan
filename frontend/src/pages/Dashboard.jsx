@@ -18,8 +18,8 @@ export function DashboardPage() {
   const cards = [
     { label: "Activiteiten", value: stats?.totalPosts ?? "—" },
     { label: "Nog te doen", value: stats?.upcomingPosts ?? "—" },
-    { label: "Mensen die mogen plaatsen", value: stats?.editors ?? "—" },
-    ...(isEditor ? [{ label: "In de prullenbak", value: stats?.trash ?? "—" }] : []),
+    { label: "Redacteuren", value: stats?.editors ?? "—", to: "/redacteuren", hint: "Tik om namen te zien" },
+    ...(isEditor ? [{ label: "In de prullenbak", value: stats?.trash ?? "—", to: "/prullenbak" }] : []),
   ];
 
   return (
@@ -30,12 +30,24 @@ export function DashboardPage() {
       </p>
       {error ? <p className="mt-4 text-brick-600">{error}</p> : null}
       <div className={`mt-8 grid gap-4 ${isEditor ? "sm:grid-cols-2 lg:grid-cols-4" : "sm:grid-cols-3"}`}>
-        {cards.map((card) => (
-          <article key={card.label} className="card rounded-lg p-4 sm:p-5">
-            <p className="text-xs text-primary-500 dark:text-primary-300">{card.label}</p>
-            <p className="mt-2 font-serif text-3xl">{card.value}</p>
-          </article>
-        ))}
+        {cards.map((card) => {
+          const inner = (
+            <>
+              <p className="text-xs text-primary-500 dark:text-primary-300">{card.label}</p>
+              <p className="mt-2 font-serif text-3xl">{card.value}</p>
+              {card.hint ? <p className="mt-2 text-sm text-primary-500">{card.hint}</p> : null}
+            </>
+          );
+          return card.to ? (
+            <Link key={card.label} to={card.to} className="card rounded-lg p-4 sm:p-5">
+              {inner}
+            </Link>
+          ) : (
+            <article key={card.label} className="card rounded-lg p-4 sm:p-5">
+              {inner}
+            </article>
+          );
+        })}
       </div>
       <div className="mt-8 flex flex-wrap gap-3">
         <Link to="/bord" className="btn btn-primary">

@@ -11,7 +11,7 @@ router.get("/", requireAuth, requireUsername, async (req, res) => {
     query(
       "SELECT COUNT(*)::int AS count FROM posts WHERE deleted_at IS NULL AND COALESCE(activity_end_date, activity_date) >= CURRENT_DATE",
     ),
-    query("SELECT COUNT(*)::int AS count FROM users WHERE role IN ('editor', 'creator')"),
+    query("SELECT COUNT(*)::int AS count FROM users WHERE role = 'editor' AND username IS NOT NULL"),
   ];
   if (isEditorRole(req.user.role)) {
     counts.push(query("SELECT COUNT(*)::int AS count FROM posts WHERE deleted_at IS NOT NULL"));
@@ -24,6 +24,18 @@ router.get("/", requireAuth, requireUsername, async (req, res) => {
     upcomingPosts: upcoming.rows[0].count,
     editors: editors.rows[0].count,
     ...(isEditorRole(req.user.role) ? { trash: trash.rows[0].count } : {}),
+  });
+});
+
+router.get("/editors", requireAuth, requireUsername, async (_req, res) => {
+  const result = await query(
+    `SELECT username
+     FROM users
+     WHERE role = 'editor' AND username IS NOT NULL
+     ORDER BY lower(username)`,
+  );
+  res.json({
+    editors: result.rows.map((row) => ({ username: row.username })),
   });
 });
 

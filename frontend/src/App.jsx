@@ -7,6 +7,7 @@ import { EditorsPage } from "./pages/Editors.jsx";
 import { LoginPage } from "./pages/Login.jsx";
 import { PostFormPage } from "./pages/PostForm.jsx";
 import { PrivacyPage } from "./pages/Privacy.jsx";
+import { PostersPage } from "./pages/Posters.jsx";
 import { TrashPage } from "./pages/Trash.jsx";
 import { UsernameSetupPage } from "./pages/UsernameSetup.jsx";
 
@@ -21,6 +22,7 @@ export function App() {
           <Route path="/" element={<BoardPage />} />
           <Route path="/bord" element={<BoardPage />} />
           <Route path="/overzicht" element={<DashboardPage />} />
+          <Route path="/redacteuren" element={<PostersPage />} />
           <Route element={<ProtectedRoute editor />}>
             <Route path="/berichten/nieuw" element={<PostFormPage />} />
             <Route path="/berichten/:id/bewerken" element={<PostFormPage />} />
