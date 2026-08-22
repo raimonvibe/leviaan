@@ -50,8 +50,7 @@ export function TrashPage() {
 
   return (
     <section>
-      <p className="text-xs uppercase tracking-[0.2em] text-brick-600 dark:text-accent-300">Redactie</p>
-      <h1 className="page-title mt-1">Prullenbak</h1>
+      <h1 className="page-title">Prullenbak</h1>
       <p className="mt-2 max-w-2xl text-primary-600 dark:text-primary-200">
         Verwijderde activiteiten blijven hier staan tot je ze terugzet of definitief wist.
       </p>

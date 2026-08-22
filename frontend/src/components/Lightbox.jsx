@@ -17,7 +17,7 @@ export function Lightbox({ src, alt = "", onClose }) {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-primary-900/85 p-4"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-primary-900/85 p-3 pt-[max(0.75rem,env(safe-area-inset-top))] pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:p-6"
       onClick={onClose}
       role="dialog"
       aria-modal="true"
@@ -33,7 +33,7 @@ export function Lightbox({ src, alt = "", onClose }) {
       <img
         src={src}
         alt={alt}
-        className="max-h-[90vh] max-w-full rounded-md object-contain shadow-2xl"
+        className="max-h-[85dvh] max-w-full rounded-md object-contain"
         onClick={(event) => event.stopPropagation()}
       />
     </div>

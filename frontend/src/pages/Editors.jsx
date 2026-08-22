@@ -72,7 +72,7 @@ export function EditorsPage() {
         </p>
       </div>
 
-      <form onSubmit={invite} className="card rounded-lg p-6">
+      <form onSubmit={invite} className="card rounded-lg p-4 sm:p-6">
         <label className="label" htmlFor="email">
           E-mail van een nieuwe redacteur
         </label>
@@ -116,7 +116,7 @@ export function EditorsPage() {
         </div>
         <ul className="divide-y divide-primary-100 dark:divide-primary-700">
           {users.map((user) => (
-            <li key={user.id} className="flex flex-wrap items-center justify-between gap-3 px-6 py-4">
+            <li key={user.id} className="flex flex-wrap items-center justify-between gap-3 px-4 py-3 sm:px-6 sm:py-4">
               <div>
                 <p className="font-semibold">{user.username || "Nog geen gebruikersnaam"}</p>
                 <p className="text-sm text-primary-500">{roleLabel(user.role)}</p>

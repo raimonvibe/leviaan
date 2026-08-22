@@ -12,6 +12,7 @@ function mapPost(row) {
     title: row.title,
     body: row.body,
     activityDate: row.activity_date,
+    activityEndDate: row.activity_end_date || row.activity_date,
     imageData: row.image_data,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
@@ -24,10 +25,11 @@ function mapPost(row) {
   };
 }
 
-function validatePost({ title, body, activityDate, imageData, requireImage }) {
+function validatePost({ title, body, activityDate, activityEndDate, imageData, requireImage }) {
   const cleanTitle = String(title || "").trim();
   const cleanBody = String(body || "").trim();
-  const cleanDate = String(activityDate || "").trim();
+  const cleanStart = String(activityDate || "").trim();
+  const cleanEnd = String(activityEndDate || activityDate || "").trim();
   const cleanImage = imageData == null || imageData === "" ? null : String(imageData);
 
   if (cleanTitle.length < 2 || cleanTitle.length > 160) {
@@ -36,8 +38,11 @@ function validatePost({ title, body, activityDate, imageData, requireImage }) {
   if (cleanBody.length < 2 || cleanBody.length > 4000) {
     return { error: "De tekst moet tussen 2 en 4000 tekens zijn." };
   }
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(cleanDate)) {
-    return { error: "Kies een geldige datum." };
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(cleanStart) || !/^\d{4}-\d{2}-\d{2}$/.test(cleanEnd)) {
+    return { error: "Kies een begindatum en een einddatum." };
+  }
+  if (cleanEnd < cleanStart) {
+    return { error: "De einddatum moet op of na de begindatum liggen." };
   }
   if (requireImage && !cleanImage) {
     return { error: "Voeg een afbeelding toe." };
@@ -54,7 +59,8 @@ function validatePost({ title, body, activityDate, imageData, requireImage }) {
   return {
     title: cleanTitle,
     body: cleanBody,
-    activityDate: cleanDate,
+    activityDate: cleanStart,
+    activityEndDate: cleanEnd,
     imageData: cleanImage,
   };
 }
@@ -65,6 +71,7 @@ const postSelect = `
     p.title,
     p.body,
     p.activity_date,
+    p.activity_end_date,
     p.image_data,
     p.author_id,
     p.created_at,
@@ -105,10 +112,10 @@ router.post("/", requireAuth, requireUsername, requireEditor, async (req, res) =
   }
 
   const result = await query(
-    `INSERT INTO posts (title, body, activity_date, image_data, author_id)
-     VALUES ($1, $2, $3, $4, $5)
+    `INSERT INTO posts (title, body, activity_date, activity_end_date, image_data, author_id)
+     VALUES ($1, $2, $3, $4, $5, $6)
      RETURNING id`,
-    [parsed.title, parsed.body, parsed.activityDate, parsed.imageData, req.user.id],
+    [parsed.title, parsed.body, parsed.activityDate, parsed.activityEndDate, parsed.imageData, req.user.id],
   );
 
   const created = await query(`${postSelect} WHERE p.id = $1`, [result.rows[0].id]);
@@ -135,9 +142,9 @@ router.put("/:id", requireAuth, requireUsername, requireEditor, async (req, res)
 
   await query(
     `UPDATE posts
-     SET title = $1, body = $2, activity_date = $3, image_data = $4
-     WHERE id = $5 AND deleted_at IS NULL`,
-    [parsed.title, parsed.body, parsed.activityDate, parsed.imageData, req.params.id],
+     SET title = $1, body = $2, activity_date = $3, activity_end_date = $4, image_data = $5
+     WHERE id = $6 AND deleted_at IS NULL`,
+    [parsed.title, parsed.body, parsed.activityDate, parsed.activityEndDate, parsed.imageData, req.params.id],
   );
 
   const updated = await query(`${postSelect} WHERE p.id = $1`, [req.params.id]);

@@ -34,6 +34,7 @@ CREATE INDEX IF NOT EXISTS idx_users_username ON users (username);
 CREATE INDEX IF NOT EXISTS idx_users_role ON users (role);
 CREATE INDEX IF NOT EXISTS idx_editor_invites_email ON editor_invites (email);
 ALTER TABLE posts ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMPTZ;
+ALTER TABLE posts ADD COLUMN IF NOT EXISTS activity_end_date DATE;
 
 CREATE INDEX IF NOT EXISTS idx_posts_activity_date ON posts (activity_date DESC);
 CREATE INDEX IF NOT EXISTS idx_posts_created_at ON posts (created_at DESC);

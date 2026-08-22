@@ -8,7 +8,7 @@ router.get("/", requireAuth, requireUsername, async (_req, res) => {
   const [posts, upcoming, editors, trash] = await Promise.all([
     query("SELECT COUNT(*)::int AS count FROM posts WHERE deleted_at IS NULL"),
     query(
-      "SELECT COUNT(*)::int AS count FROM posts WHERE deleted_at IS NULL AND activity_date >= CURRENT_DATE",
+      "SELECT COUNT(*)::int AS count FROM posts WHERE deleted_at IS NULL AND COALESCE(activity_end_date, activity_date) >= CURRENT_DATE",
     ),
     query("SELECT COUNT(*)::int AS count FROM users WHERE role IN ('editor', 'creator')"),
     query("SELECT COUNT(*)::int AS count FROM posts WHERE deleted_at IS NOT NULL"),

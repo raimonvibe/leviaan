@@ -27,9 +27,9 @@ export function UsernameSetupPage() {
   }
 
   return (
-    <div className="mx-auto flex min-h-screen max-w-xl flex-col justify-center px-4 py-12">
+    <div className="mx-auto flex min-h-dvh max-w-md flex-col justify-center px-4 py-10">
       <Logo />
-      <form onSubmit={handleSubmit} className="card mt-8 rounded-lg p-8">
+      <form onSubmit={handleSubmit} className="card mt-6 rounded-lg p-5 sm:p-7">
         <h1 className="page-title">Kies je gebruikersnaam</h1>
         <p className="mt-3 text-primary-600 dark:text-primary-200">
           Alleen deze naam is zichtbaar op het bord. Je e-mailadres blijft privé

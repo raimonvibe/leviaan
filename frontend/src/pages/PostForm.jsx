@@ -1,15 +1,17 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router";
 import { api, getErrorMessage } from "../api/client.js";
+import { DateRangePicker } from "../components/DateRangePicker.jsx";
 import { Lightbox } from "../components/Lightbox.jsx";
 import { useToast } from "../contexts/ToastContext.jsx";
-import { shiftInputDate, toInputDate } from "../utils/dates.js";
+import { toInputDate } from "../utils/dates.js";
 import { compressImage } from "../utils/image.js";
 
 const emptyForm = {
   title: "",
   body: "",
-  activityDate: toInputDate(new Date().toISOString()),
+  activityDate: toInputDate(new Date()),
+  activityEndDate: toInputDate(new Date()),
   imageData: "",
 };
 
@@ -35,6 +37,7 @@ export function PostFormPage() {
           title: post.title,
           body: post.body,
           activityDate: toInputDate(post.activityDate),
+          activityEndDate: toInputDate(post.activityEndDate || post.activityDate),
           imageData: post.imageData || "",
         });
       })
@@ -86,10 +89,9 @@ export function PostFormPage() {
   }
 
   return (
-    <section className="mx-auto max-w-2xl">
-      <p className="text-xs uppercase tracking-[0.2em] text-brick-600 dark:text-accent-300">Redactie</p>
-      <h1 className="page-title mt-1">{isEdit ? "Bericht bewerken" : "Nieuw bericht"}</h1>
-      <form onSubmit={handleSubmit} className="card mt-6 space-y-5 rounded-lg p-6">
+    <section className="mx-auto max-w-xl">
+      <h1 className="page-title">{isEdit ? "Bericht bewerken" : "Nieuw bericht"}</h1>
+      <form onSubmit={handleSubmit} className="card mt-5 space-y-5 rounded-lg p-4 sm:p-6">
         <div>
           <label className="label" htmlFor="title">
             Titel
@@ -105,28 +107,14 @@ export function PostFormPage() {
           <p className="mt-1 text-right text-xs text-primary-500">{form.title.length}/160</p>
         </div>
         <div>
-          <label className="label" htmlFor="activityDate">
-            Datum
-          </label>
-          <input
-            id="activityDate"
-            type="date"
-            className="input"
-            value={form.activityDate}
-            onChange={(event) => updateField("activityDate", event.target.value)}
-            required
+          <p className="label">Datum</p>
+          <DateRangePicker
+            start={form.activityDate}
+            end={form.activityEndDate}
+            onChange={({ start, end }) =>
+              setForm((current) => ({ ...current, activityDate: start, activityEndDate: end || start }))
+            }
           />
-          <div className="mt-2 flex flex-wrap gap-2">
-            <button type="button" className="btn btn-secondary" onClick={() => updateField("activityDate", shiftInputDate(0))}>
-              Vandaag
-            </button>
-            <button type="button" className="btn btn-secondary" onClick={() => updateField("activityDate", shiftInputDate(1))}>
-              Morgen
-            </button>
-            <button type="button" className="btn btn-secondary" onClick={() => updateField("activityDate", shiftInputDate(7))}>
-              Over een week
-            </button>
-          </div>
         </div>
         <div>
           <label className="label" htmlFor="body">
@@ -134,7 +122,7 @@ export function PostFormPage() {
           </label>
           <textarea
             id="body"
-            className="input min-h-36"
+            className="input min-h-32"
             value={form.body}
             onChange={(event) => updateField("body", event.target.value)}
             maxLength={4000}
@@ -146,10 +134,8 @@ export function PostFormPage() {
           <p className="label">Afbeelding</p>
           <label
             htmlFor="image"
-            className={`block cursor-pointer rounded-lg border-2 border-dashed p-6 text-center transition-colors ${
-              dragging
-                ? "border-accent-400 bg-accent-50 dark:bg-primary-700"
-                : "border-primary-200 hover:border-primary-400 dark:border-primary-600"
+            className={`block cursor-pointer rounded-lg border border-dashed p-5 text-center text-sm ${
+              dragging ? "border-accent-400 bg-accent-50 dark:bg-primary-700" : "border-primary-200 dark:border-primary-600"
             }`}
             onDragOver={(event) => {
               event.preventDefault();
@@ -162,7 +148,7 @@ export function PostFormPage() {
               setImageFile(event.dataTransfer.files?.[0]);
             }}
           >
-            <span className="font-medium">Sleep een foto hierheen of klik om te kiezen</span>
+            Sleep een foto hierheen of tik om te kiezen
             <input
               id="image"
               type="file"
@@ -172,34 +158,31 @@ export function PostFormPage() {
             />
           </label>
           {form.imageData ? (
-            <div className="mt-4 space-y-3">
+            <div className="mt-3 space-y-2">
               <button type="button" className="block w-full" onClick={() => setPreviewOpen(true)}>
                 <img
                   src={form.imageData}
-                  alt="Voorvertoning van de gekozen foto"
-                  className="max-h-[28rem] w-full rounded-md object-contain bg-primary-50 dark:bg-primary-900"
+                  alt="Voorvertoning"
+                  className="max-h-72 w-full rounded-md object-contain sm:max-h-96"
                 />
               </button>
-              <p className="text-sm text-primary-500">Klik op de foto om die groter te bekijken.</p>
               <button type="button" className="btn btn-ghost" onClick={() => updateField("imageData", "")}>
-                Andere foto kiezen
+                Andere foto
               </button>
             </div>
           ) : null}
         </div>
         {error ? <p className="text-sm text-brick-600">{error}</p> : null}
-        <div className="flex gap-3">
-          <button type="submit" className="btn btn-primary" disabled={saving}>
-            {saving ? "Opslaan…" : "Opslaan"}
-          </button>
-          <Link to="/bord" className="btn btn-secondary">
+        <div className="flex flex-col-reverse gap-2 sm:flex-row">
+          <Link to="/bord" className="btn btn-secondary w-full sm:w-auto">
             Annuleren
           </Link>
+          <button type="submit" className="btn btn-primary w-full sm:w-auto" disabled={saving}>
+            {saving ? "Opslaan…" : "Opslaan"}
+          </button>
         </div>
       </form>
-      {previewOpen ? (
-        <Lightbox src={form.imageData} alt="Voorvertoning" onClose={() => setPreviewOpen(false)} />
-      ) : null}
+      {previewOpen ? <Lightbox src={form.imageData} alt="Voorvertoning" onClose={() => setPreviewOpen(false)} /> : null}
     </section>
   );
 }

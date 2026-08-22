@@ -24,19 +24,13 @@ export function DashboardPage() {
 
   return (
     <section>
-      <p className="text-xs uppercase tracking-[0.2em] text-brick-600 dark:text-accent-300">Campus</p>
-      <h1 className="page-title mt-1">Overzicht</h1>
-      <p className="mt-2 max-w-2xl text-primary-600 dark:text-primary-200">
-        Een kort overzicht van het bord. Geen taakstatussen — alleen wat er speelt.
-      </p>
+      <h1 className="page-title">Overzicht</h1>
       {error ? <p className="mt-4 text-brick-600">{error}</p> : null}
       <div className={`mt-8 grid gap-4 ${isEditor ? "sm:grid-cols-2 lg:grid-cols-4" : "sm:grid-cols-3"}`}>
         {cards.map((card) => (
-          <article key={card.label} className="card rounded-lg p-6">
-            <p className="text-sm uppercase tracking-wider text-primary-500 dark:text-primary-300">
-              {card.label}
-            </p>
-            <p className="mt-3 font-serif text-4xl">{card.value}</p>
+          <article key={card.label} className="card rounded-lg p-4 sm:p-5">
+            <p className="text-xs text-primary-500 dark:text-primary-300">{card.label}</p>
+            <p className="mt-2 font-serif text-3xl">{card.value}</p>
           </article>
         ))}
       </div>
