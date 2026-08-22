@@ -134,10 +134,4 @@ body {
   .chip-row::-webkit-scrollbar {
     display: none;
   }
-
-  .google-login-slot,
-  .google-login-slot > div,
-  .google-login-slot iframe {
-    max-width: 100% !important;
-  }
 }

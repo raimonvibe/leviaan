@@ -10,7 +10,7 @@ function creatorEmail() {
 }
 
 const begeleiderFilter = `
-  role = 'editor'
+  COALESCE(base_role, role) = 'editor'
   AND username IS NOT NULL
   AND lower(email) <> $1
 `;

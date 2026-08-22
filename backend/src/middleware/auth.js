@@ -21,7 +21,7 @@ export async function requireAuth(req, res, next) {
 
     const payload = jwt.verify(token, process.env.JWT_SECRET, { algorithms: ["HS256"] });
     const result = await query(
-      "SELECT id, google_id, email, username, role, created_at FROM users WHERE id = $1",
+      "SELECT id, google_id, email, username, role, base_role, created_at FROM users WHERE id = $1",
       [payload.sub],
     );
     const user = result.rows[0];

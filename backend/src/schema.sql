@@ -48,6 +48,10 @@ CREATE TABLE IF NOT EXISTS attendances (
 CREATE INDEX IF NOT EXISTS idx_posts_deleted_at ON posts (deleted_at);
 CREATE INDEX IF NOT EXISTS idx_attendances_user_id ON attendances (user_id);
 
+ALTER TABLE users ADD COLUMN IF NOT EXISTS base_role VARCHAR(20);
+UPDATE users SET base_role = role WHERE base_role IS NULL;
+ALTER TABLE users ALTER COLUMN base_role SET DEFAULT 'visitor';
+
 CREATE OR REPLACE FUNCTION update_updated_at_column()
 RETURNS TRIGGER AS $$
 BEGIN

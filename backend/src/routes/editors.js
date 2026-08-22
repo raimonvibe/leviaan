@@ -19,10 +19,10 @@ router.use(requireAuth, requireUsername, requireCreator);
 router.get("/", async (_req, res) => {
   const [users, invites] = await Promise.all([
     query(
-      `SELECT id, username, role, created_at
+      `SELECT id, username, role, base_role, created_at
        FROM users
        ORDER BY
-         CASE role WHEN 'creator' THEN 0 WHEN 'editor' THEN 1 ELSE 2 END,
+         CASE COALESCE(base_role, role) WHEN 'creator' THEN 0 WHEN 'editor' THEN 1 ELSE 2 END,
          username NULLS LAST,
          created_at`,
     ),
@@ -36,6 +36,7 @@ router.get("/", async (_req, res) => {
   res.json({
     users: users.rows.map((row) => ({
       ...toPublicUser(row),
+      baseRole: row.base_role || row.role,
       createdAt: row.created_at,
     })),
     invites: invites.rows.map((row) => ({
@@ -65,7 +66,7 @@ router.post("/invites", async (req, res) => {
     if (user.role === "editor") {
       return res.status(400).json({ error: "Deze persoon is al begeleider." });
     }
-    await query("UPDATE users SET role = 'editor' WHERE id = $1", [user.id]);
+    await query("UPDATE users SET role = 'editor', base_role = 'editor' WHERE id = $1", [user.id]);
     await query("DELETE FROM editor_invites WHERE email = $1", [email]);
     return res.status(201).json({
       promoted: true,
@@ -119,7 +120,7 @@ router.patch("/:id/role", async (req, res) => {
   }
 
   const updated = await query(
-    "UPDATE users SET role = $1 WHERE id = $2 RETURNING id, username, role",
+    "UPDATE users SET role = $1, base_role = $1 WHERE id = $2 RETURNING id, username, role",
     [role, id],
   );
   if (role === "visitor" && target.rows[0].email) {

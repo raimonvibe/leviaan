@@ -53,14 +53,16 @@ export function AuthProvider({ children }) {
       isEditor: user?.role === "editor" || user?.role === "creator",
       isCreator: user?.role === "creator",
       isOwner: Boolean(user?.isOwner),
+      canSwitchRole: Boolean(user?.canSwitchRole),
+      baseRole: user?.baseRole,
       refreshUser,
       async setRole(role) {
         const response = await api.patch("/auth/role", { role });
         setUser(response.data.user);
         return response.data.user;
       },
-      async loginWithGoogle(credential) {
-        const response = await api.post("/auth/google", { credential });
+      async loginWithGoogle({ credential, accessToken } = {}) {
+        const response = await api.post("/auth/google", { credential, accessToken });
         localStorage.setItem(TOKEN_KEY, response.data.token);
         setToken(response.data.token);
         setUser(response.data.user);

@@ -12,7 +12,7 @@ const linkClass = ({ isActive }) =>
   }`;
 
 export function Layout() {
-  const { user, isEditor, isCreator, isOwner, setRole, logout } = useAuth();
+  const { user, isEditor, isCreator, isOwner, canSwitchRole, setRole, logout } = useAuth();
   const { isDark, toggleTheme } = useTheme();
 
   const links = (
@@ -65,6 +65,24 @@ export function Layout() {
                 onClick={() => setRole("creator").catch(() => {})}
               >
                 Terug naar beheer
+              </button>
+            ) : null}
+            {canSwitchRole && !isOwner && isEditor ? (
+              <button
+                type="button"
+                className="btn btn-ghost px-3"
+                onClick={() => setRole("visitor").catch(() => {})}
+              >
+                Kijk als bewoner
+              </button>
+            ) : null}
+            {canSwitchRole && !isOwner && !isEditor ? (
+              <button
+                type="button"
+                className="btn btn-brick px-3"
+                onClick={() => setRole("editor").catch(() => {})}
+              >
+                Terug naar begeleider
               </button>
             ) : null}
             <p className="hidden max-w-28 truncate text-sm md:block">{user?.username}</p>

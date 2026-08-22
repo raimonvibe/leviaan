@@ -27,6 +27,53 @@ function usernameFromGoogle(payload) {
   return raw.replace(/[^a-zA-Z0-9_]/g, "").slice(0, 24) || null;
 }
 
+function isVerifiedEmail(value) {
+  return value === true || value === "true";
+}
+
+async function payloadFromCredential(credential) {
+  const ticket = await googleClient().verifyIdToken({
+    idToken: credential,
+    audience: process.env.GOOGLE_CLIENT_ID,
+  });
+  return ticket.getPayload();
+}
+
+async function payloadFromAccessToken(accessToken) {
+  if (typeof accessToken !== "string" || accessToken.length < 20 || accessToken.length > 4096) {
+    return null;
+  }
+
+  const tokenInfoUrl = new URL("https://oauth2.googleapis.com/tokeninfo");
+  tokenInfoUrl.searchParams.set("access_token", accessToken);
+  const tokenInfoResponse = await fetch(tokenInfoUrl);
+  if (!tokenInfoResponse.ok) {
+    throw new Error("invalid access token");
+  }
+
+  const tokenInfo = await tokenInfoResponse.json();
+  const audience = tokenInfo.aud || tokenInfo.azp || tokenInfo.audience;
+  if (audience !== process.env.GOOGLE_CLIENT_ID) {
+    throw new Error("wrong audience");
+  }
+
+  const userInfoResponse = await fetch("https://www.googleapis.com/oauth2/v3/userinfo", {
+    headers: { Authorization: `Bearer ${accessToken}` },
+  });
+  if (!userInfoResponse.ok) {
+    throw new Error("userinfo failed");
+  }
+
+  const userInfo = await userInfoResponse.json();
+  return {
+    sub: userInfo.sub || tokenInfo.sub || tokenInfo.user_id,
+    email: userInfo.email || tokenInfo.email,
+    email_verified: userInfo.email_verified ?? tokenInfo.email_verified ?? tokenInfo.verified_email,
+    name: userInfo.name,
+    given_name: userInfo.given_name,
+  };
+}
+
 async function resolveRole(email) {
   if (email && email === creatorEmail()) {
     return "creator";
@@ -43,24 +90,23 @@ async function resolveRole(email) {
 router.post("/google", async (req, res) => {
   try {
     const credential = req.body?.credential;
-    if (!credential) {
+    const accessToken = req.body?.accessToken;
+    if (!credential && !accessToken) {
       return res.status(400).json({ error: "Google-inlog ontbreekt." });
     }
 
-    const ticket = await googleClient().verifyIdToken({
-      idToken: credential,
-      audience: process.env.GOOGLE_CLIENT_ID,
-    });
-    const payload = ticket.getPayload();
+    const payload = credential
+      ? await payloadFromCredential(credential)
+      : await payloadFromAccessToken(accessToken);
     const googleId = payload?.sub;
     const email = normalizeEmail(payload?.email);
 
-    if (!googleId || !email || !payload.email_verified) {
+    if (!payload || !googleId || !email || !isVerifiedEmail(payload.email_verified)) {
       return res.status(401).json({ error: "Google kon dit account niet bevestigen." });
     }
 
     const existing = await query(
-      "SELECT id, google_id, email, username, role FROM users WHERE google_id = $1 OR email = $2",
+      "SELECT id, google_id, email, username, role, base_role FROM users WHERE google_id = $1 OR email = $2",
       [googleId, email],
     );
 
@@ -69,24 +115,34 @@ router.post("/google", async (req, res) => {
     if (!user) {
       const role = await resolveRole(email);
       const created = await query(
-        `INSERT INTO users (google_id, email, username, role)
-         VALUES ($1, $2, NULL, $3)
-         RETURNING id, google_id, email, username, role`,
+        `INSERT INTO users (google_id, email, username, role, base_role)
+         VALUES ($1, $2, NULL, $3, $3)
+         RETURNING id, google_id, email, username, role, base_role`,
         [googleId, email, role],
       );
       user = created.rows[0];
     } else {
       let nextRole = user.role;
+      let nextBaseRole = user.base_role || user.role;
       if (email === creatorEmail()) {
         nextRole = "creator";
+        nextBaseRole = "creator";
+      } else if (nextBaseRole === "editor") {
+        nextRole = "editor";
+        nextBaseRole = "editor";
       } else if (user.role === "visitor") {
         nextRole = await resolveRole(email);
+        if (nextRole === "editor") {
+          nextBaseRole = "editor";
+        }
       }
 
-      if (nextRole !== user.role || user.google_id !== googleId) {
+      if (nextRole !== user.role || nextBaseRole !== user.base_role || user.google_id !== googleId) {
         const updated = await query(
-          "UPDATE users SET role = $1, google_id = $2 WHERE id = $3 RETURNING id, google_id, email, username, role",
-          [nextRole, googleId, user.id],
+          `UPDATE users SET role = $1, base_role = $2, google_id = $3
+           WHERE id = $4
+           RETURNING id, google_id, email, username, role, base_role`,
+          [nextRole, nextBaseRole, googleId, user.id],
         );
         user = updated.rows[0];
       }
@@ -113,17 +169,17 @@ router.get("/me", requireAuth, (req, res) => {
 });
 
 router.patch("/role", requireAuth, requireUsername, async (req, res) => {
-  if (!isOwnerEmail(req.user.email)) {
-    return res.status(403).json({ error: "Alleen de beheerder kan dit wisselen." });
-  }
-
   const role = String(req.body?.role || "");
-  if (!["visitor", "editor", "creator"].includes(role)) {
-    return res.status(400).json({ error: "Kies beheerder, activiteitenmanager of bewoner." });
+  const owner = isOwnerEmail(req.user.email);
+  const baseRole = req.user.base_role || req.user.role;
+  const allowed = owner ? ["visitor", "editor", "creator"] : baseRole === "editor" ? ["visitor", "editor"] : [];
+
+  if (!allowed.includes(role)) {
+    return res.status(403).json({ error: "Je kunt dit niet wisselen." });
   }
 
   const updated = await query(
-    "UPDATE users SET role = $1 WHERE id = $2 RETURNING id, email, username, role",
+    "UPDATE users SET role = $1 WHERE id = $2 RETURNING id, email, username, role, base_role",
     [role, req.user.id],
   );
 
@@ -152,7 +208,7 @@ router.post("/username", requireAuth, async (req, res) => {
   }
 
   const updated = await query(
-    "UPDATE users SET username = $1 WHERE id = $2 RETURNING id, email, username, role",
+    "UPDATE users SET username = $1 WHERE id = $2 RETURNING id, email, username, role, base_role",
     [username, req.user.id],
   );
 

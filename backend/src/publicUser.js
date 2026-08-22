@@ -17,6 +17,7 @@ export function isOwnerEmail(email) {
 
 export function toPrivateUser(row) {
   if (!row) return null;
+  const baseRole = row.base_role || row.role;
   return {
     id: row.id,
     username: row.username,
@@ -24,6 +25,8 @@ export function toPrivateUser(row) {
     email: row.email,
     needsUsername: !row.username,
     isOwner: isOwnerEmail(row.email),
+    baseRole,
+    canSwitchRole: baseRole === "editor" || isOwnerEmail(row.email),
   };
 }
 

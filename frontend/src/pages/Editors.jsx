@@ -10,8 +10,8 @@ export function EditorsPage() {
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
 
-  const begeleiders = users.filter((user) => user.role === "editor");
-  const bewoners = users.filter((user) => user.role === "visitor");
+  const begeleiders = users.filter((user) => (user.baseRole || user.role) === "editor");
+  const bewoners = users.filter((user) => (user.baseRole || user.role) === "visitor");
 
   async function load() {
     const response = await api.get("/editors");
@@ -87,7 +87,8 @@ export function EditorsPage() {
         <h1 className="page-title mt-1">Begeleiders</h1>
         <p className="mt-2 max-w-2xl text-primary-600 dark:text-primary-200">
           Voeg een begeleider toe met een e-mailadres. Die persoon mag activiteiten plaatsen en ziet
-          de namen van bewoners die meedoen. Jij blijft beheerder en staat niet in hun lijst.
+          de namen van bewoners die meedoen. Jij blijft beheerder en staat niet in hun lijst. Een
+          begeleider kan zelf even als bewoner meekijken en daarna terug.
         </p>
       </div>
 
@@ -162,11 +163,8 @@ export function EditorsPage() {
         ) : (
           <ul className="card mt-4 divide-y divide-primary-100 overflow-hidden rounded-lg dark:divide-primary-700">
             {bewoners.map((user) => (
-              <li key={user.id} className="flex flex-wrap items-center justify-between gap-3 px-4 py-3 sm:px-5">
+              <li key={user.id} className="px-4 py-3 sm:px-5">
                 <p className="font-medium">{user.username || "Nog geen naam gekozen"}</p>
-                <button type="button" className="btn btn-secondary" onClick={() => changeRole(user, "editor")}>
-                  Maak begeleider
-                </button>
               </li>
             ))}
           </ul>
