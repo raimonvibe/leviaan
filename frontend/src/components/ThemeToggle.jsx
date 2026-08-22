@@ -32,7 +32,7 @@ export function ThemeToggle({ className = "btn btn-ghost shrink-0 px-3" }) {
       aria-label={isDark ? "Lichte modus" : "Donkere modus"}
     >
       {isDark ? <SunIcon /> : <MoonIcon />}
-      {isDark ? "Licht" : "Donker"}
+      <span className="max-[360px]:hidden">{isDark ? "Licht" : "Donker"}</span>
     </button>
   );
 }
