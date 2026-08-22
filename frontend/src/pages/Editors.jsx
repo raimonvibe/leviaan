@@ -4,7 +4,7 @@ import { useAuth } from "../contexts/AuthContext.jsx";
 
 function roleLabel(role) {
   if (role === "creator") return "Beheerder";
-  if (role === "editor") return "Activiteitenmanager";
+  if (role === "editor") return "Mag plaatsen";
   return "Bewoner";
 }
 
@@ -34,9 +34,9 @@ export function EditorsPage() {
       const response = await api.post("/editors/invites", { email });
       setEmail("");
       if (response.data.promoted) {
-        setNotice(`${response.data.user.username} is nu activiteitenmanager.`);
+        setNotice(`${response.data.user.username} mag nu activiteiten plaatsen.`);
       } else {
-        setNotice("Uitnodiging is klaar. Zodra deze persoon inlogt, wordt die activiteitenmanager.");
+        setNotice("De uitnodiging staat klaar. Na het inloggen mag deze persoon plaatsen.");
       }
       await load();
     } catch (inviteError) {
@@ -46,8 +46,8 @@ export function EditorsPage() {
 
   async function changeRole(user, role) {
     setError("");
-    const label = role === "visitor" ? "bewoner" : "activiteitenmanager";
-    if (role === "visitor" && !window.confirm(`${user.username || "Deze persoon"} wordt bewoner en kan geen activiteiten meer plaatsen.`)) {
+    const label = role === "visitor" ? "bewoner" : "iemand die mag plaatsen";
+    if (role === "visitor" && !window.confirm(`${user.username || "Deze persoon"} wordt bewoner en kan daarna geen activiteiten meer plaatsen.`)) {
       return;
     }
     try {
@@ -81,16 +81,16 @@ export function EditorsPage() {
     <section className="space-y-8">
       <div>
         <p className="text-xs uppercase tracking-[0.2em] text-brick-600 dark:text-accent-300">Beheer</p>
-        <h1 className="page-title mt-1">Activiteitenmanagers</h1>
+        <h1 className="page-title mt-1">Wie mag plaatsen</h1>
         <p className="mt-2 max-w-2xl text-primary-600 dark:text-primary-200">
-          Nodig activiteitenmanagers uit via e-mail. Dat adres blijft privé: op het bord zien
-          anderen alleen de gekozen gebruikersnaam. Jij kunt hen hier ook weer bewoner maken.
+          Hier bepaal je wie activiteiten op het bord mag zetten. Nodig iemand uit met een
+          e-mailadres. Dat adres blijft geheim; op het bord zien anderen alleen de naam.
         </p>
       </div>
 
       <form onSubmit={invite} className="card rounded-lg p-4 sm:p-6">
         <label className="label" htmlFor="email">
-          E-mail van een nieuwe activiteitenmanager
+          E-mail van iemand die mag plaatsen
         </label>
         <div className="flex flex-col gap-3 sm:flex-row">
           <input
@@ -111,17 +111,17 @@ export function EditorsPage() {
       </form>
 
       <div className="card rounded-lg p-4 sm:p-6">
-        <h2 className="font-serif text-xl">Zelf testen</h2>
+        <h2 className="font-serif text-xl">Zelf meekijken</h2>
         <p className="mt-2 text-sm text-primary-600 dark:text-primary-200">
-          Kijk even hoe het bord eruitziet als activiteitenmanager of bewoner. Rechtsboven kun je
-          altijd terug naar beheerder.
+          Wil je zien wat een bewoner of iemand die mag plaatsen te zien krijgt? Kies hieronder.
+          Rechtsboven kun je altijd terug naar beheer.
         </p>
         <div className="mt-4 flex flex-wrap gap-2">
           <button type="button" className="btn btn-secondary" onClick={() => testAs("editor")}>
-            Test als activiteitenmanager
+            Kijk als plaatser
           </button>
           <button type="button" className="btn btn-secondary" onClick={() => testAs("visitor")}>
-            Test als bewoner
+            Kijk als bewoner
           </button>
         </div>
       </div>
@@ -144,7 +144,7 @@ export function EditorsPage() {
 
       <div className="card overflow-hidden rounded-lg">
         <div className="border-b border-primary-100 px-6 py-4 dark:border-primary-700">
-          <h2 className="font-serif text-xl">Mensen op het bord</h2>
+          <h2 className="font-serif text-xl">Mensen die al zijn ingelogd</h2>
         </div>
         <ul className="divide-y divide-primary-100 dark:divide-primary-700">
           {users.map((user) => (
@@ -157,11 +157,11 @@ export function EditorsPage() {
                 <div className="flex gap-2">
                   {user.role === "editor" ? (
                     <button type="button" className="btn btn-brick" onClick={() => changeRole(user, "visitor")}>
-                      Verwijder als manager
+                      Mag niet meer plaatsen
                     </button>
                   ) : (
                     <button type="button" className="btn btn-primary" onClick={() => changeRole(user, "editor")}>
-                      Maak activiteitenmanager
+                      Mag plaatsen
                     </button>
                   )}
                 </div>

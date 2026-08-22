@@ -63,7 +63,7 @@ export function PostFormPage() {
   async function handleSubmit(event) {
     event.preventDefault();
     if (!form.imageData) {
-      setError("Voeg een afbeelding toe.");
+      setError("Kies nog een foto.");
       return;
     }
     setSaving(true);
@@ -71,10 +71,10 @@ export function PostFormPage() {
     try {
       if (isEdit) {
         await api.put(`/posts/${id}`, form);
-        toast.show({ message: "Bericht is bijgewerkt.", duration: 4000 });
+        toast.show({ message: "De activiteit is aangepast.", duration: 4000 });
       } else {
         await api.post("/posts", form);
-        toast.show({ message: "Bericht hangt op het bord.", duration: 4000 });
+        toast.show({ message: "De activiteit hangt op het bord.", duration: 4000 });
       }
       navigate("/bord");
     } catch (submitError) {
@@ -85,16 +85,16 @@ export function PostFormPage() {
   }
 
   if (loading) {
-    return <p className="text-primary-500">Bericht wordt geladen…</p>;
+      return <p className="text-primary-500">De activiteit wordt geladen…</p>;
   }
 
   return (
     <section className="mx-auto max-w-xl">
-      <h1 className="page-title">{isEdit ? "Bericht bewerken" : "Nieuw bericht"}</h1>
+      <h1 className="page-title">{isEdit ? "Activiteit aanpassen" : "Nieuwe activiteit"}</h1>
       <form onSubmit={handleSubmit} className="card mt-5 space-y-5 rounded-lg p-4 sm:p-6">
         <div>
           <label className="label" htmlFor="title">
-            Titel
+            Wat is de titel?
           </label>
           <input
             id="title"
@@ -117,7 +117,7 @@ export function PostFormPage() {
         </div>
         <div>
           <label className="label" htmlFor="body">
-            Tekst
+            Wat gebeurt er?
           </label>
           <textarea
             id="body"
@@ -130,7 +130,7 @@ export function PostFormPage() {
           <p className="mt-1 text-right text-xs text-primary-500">{form.body.length}/4000</p>
         </div>
         <div>
-          <p className="label">Afbeelding</p>
+          <p className="label">Foto</p>
           <label
             htmlFor="image"
             className={`block cursor-pointer rounded-lg border border-dashed p-5 text-center text-sm ${
@@ -147,7 +147,7 @@ export function PostFormPage() {
               setImageFile(event.dataTransfer.files?.[0]);
             }}
           >
-            Sleep een foto hierheen of tik om te kiezen
+            Tik om een foto te kiezen. Op een computer mag je er ook een naartoe slepen.
             <input
               id="image"
               type="file"

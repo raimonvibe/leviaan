@@ -36,8 +36,8 @@ export function BoardPage() {
       await api.delete(`/posts/${post.id}`);
       setPosts((current) => current.filter((item) => item.id !== post.id));
       toast.show({
-        message: `“${post.title}” is weg.`,
-        actionLabel: "Terug",
+        message: `“${post.title}” is van het bord gehaald.`,
+        actionLabel: "Terugzetten",
         onAction: async () => {
           const response = await api.post(`/posts/${post.id}/restore`);
           setPosts((current) =>
@@ -73,14 +73,14 @@ export function BoardPage() {
     <section>
       <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
         <div className="min-w-0">
-          <h1 className="page-title">Activiteitenbord</h1>
+          <h1 className="page-title">Wat speelt er?</h1>
           <p className="mt-1 max-w-xl text-sm text-primary-600 dark:text-primary-200">
-            Vink aan of je erbij bent. Bewoners zien elkaars namen niet.
+            Zeg of je meedoet. Andere bewoners zien niet wie er nog meer komt.
           </p>
         </div>
         {isEditor ? (
           <Link to="/berichten/nieuw" className="btn btn-brick">
-            Nieuw
+            Nieuwe activiteit
           </Link>
         ) : null}
       </div>
@@ -105,11 +105,15 @@ export function BoardPage() {
       </div>
 
       {error ? <p className="mb-4 text-brick-600">{error}</p> : null}
-      {loading ? <p className="text-primary-500">Laden…</p> : null}
+      {loading ? <p className="text-primary-500">Het bord wordt geladen…</p> : null}
       {!loading && visible.length === 0 ? (
         <div className="card rounded-lg p-8 text-center">
           <h2 className="font-serif text-xl">
-            {posts.length === 0 ? "Nog geen activiteiten" : filter === "upcoming" ? "Niets komends" : "Niets geweest"}
+            {posts.length === 0
+              ? "Er hangt nog niets op het bord"
+              : filter === "upcoming"
+                ? "Er staat niets gepland"
+                : "Er is nog niets geweest"}
           </h2>
         </div>
       ) : null}

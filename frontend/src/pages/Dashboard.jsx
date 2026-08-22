@@ -16,15 +16,18 @@ export function DashboardPage() {
   }, []);
 
   const cards = [
-    { label: "Totaal berichten", value: stats?.totalPosts ?? "—" },
-    { label: "Komende activiteiten", value: stats?.upcomingPosts ?? "—" },
-    { label: "Activiteitenmanagers", value: stats?.editors ?? "—" },
+    { label: "Activiteiten", value: stats?.totalPosts ?? "—" },
+    { label: "Nog te doen", value: stats?.upcomingPosts ?? "—" },
+    { label: "Mensen die mogen plaatsen", value: stats?.editors ?? "—" },
     ...(isEditor ? [{ label: "In de prullenbak", value: stats?.trash ?? "—" }] : []),
   ];
 
   return (
     <section>
       <h1 className="page-title">Overzicht</h1>
+      <p className="mt-2 max-w-xl text-sm text-primary-600 dark:text-primary-200">
+        Een korte stand van het bord. Niks ingewikkelds, alleen tellingen.
+      </p>
       {error ? <p className="mt-4 text-brick-600">{error}</p> : null}
       <div className={`mt-8 grid gap-4 ${isEditor ? "sm:grid-cols-2 lg:grid-cols-4" : "sm:grid-cols-3"}`}>
         {cards.map((card) => (
@@ -50,7 +53,7 @@ export function DashboardPage() {
         ) : null}
         {isCreator ? (
           <Link to="/redactie" className="btn btn-secondary">
-            Managers beheren
+            Wie mag plaatsen
           </Link>
         ) : null}
       </div>

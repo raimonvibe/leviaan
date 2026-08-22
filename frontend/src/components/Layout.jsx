@@ -26,7 +26,7 @@ export function Layout() {
       {isEditor ? (
         <>
           <NavLink to="/berichten/nieuw" className={linkClass}>
-            Nieuw
+            Plaatsen
           </NavLink>
           <NavLink to="/prullenbak" className={linkClass}>
             Prullenbak
@@ -35,7 +35,7 @@ export function Layout() {
       ) : null}
       {isCreator ? (
         <NavLink to="/redactie" className={linkClass}>
-          Managers
+          Beheer
         </NavLink>
       ) : null}
     </>
@@ -49,7 +49,7 @@ export function Layout() {
             <Logo />
           </NavLink>
           <nav className="hidden items-center gap-1 lg:flex">{links}</nav>
-          <div className="flex items-center gap-1 sm:gap-2">
+          <div className="flex min-w-0 flex-wrap items-center justify-end gap-1">
             <button
               type="button"
               onClick={toggleTheme}
@@ -64,13 +64,12 @@ export function Layout() {
                 className="btn btn-brick px-3"
                 onClick={() => setRole("creator").catch(() => {})}
               >
-                Weer beheerder
+                Terug naar beheer
               </button>
             ) : null}
-            <p className="hidden max-w-28 truncate text-sm sm:block">{user?.username}</p>
+            <p className="hidden max-w-28 truncate text-sm md:block">{user?.username}</p>
             <button type="button" onClick={logout} className="btn btn-ghost px-3">
-              <span className="sm:hidden">Uit</span>
-              <span className="hidden sm:inline">Uitloggen</span>
+              Uitloggen
             </button>
           </div>
         </div>
@@ -79,7 +78,9 @@ export function Layout() {
       <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-6 sm:py-8">
         <Outlet />
       </main>
-      <Footer />
+      <div className="pb-[max(0.75rem,env(safe-area-inset-bottom))]">
+        <Footer />
+      </div>
     </div>
   );
 }

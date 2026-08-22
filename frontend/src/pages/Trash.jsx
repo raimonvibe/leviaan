@@ -39,11 +39,11 @@ export function TrashPage() {
   }
 
   async function wipe(post) {
-    if (!window.confirm(`“${post.title}” definitief wissen? Dit kan niet meer ongedaan.`)) return;
+    if (!window.confirm(`“${post.title}” voorgoed wissen? Dit kun je daarna niet meer terughalen.`)) return;
     try {
       await api.delete(`/posts/${post.id}/permanent`);
       setPosts((current) => current.filter((item) => item.id !== post.id));
-      toast.show({ message: "Bericht is definitief gewist.", duration: 4000 });
+      toast.show({ message: "De activiteit is voorgoed weg.", duration: 4000 });
     } catch (wipeError) {
       setError(getErrorMessage(wipeError, "Wissen is niet gelukt."));
     }
@@ -52,7 +52,7 @@ export function TrashPage() {
   async function emptyTrash() {
     if (
       !window.confirm(
-        `De hele prullenbak legen (${posts.length} ${posts.length === 1 ? "bericht" : "berichten"})? Dit kan niet meer ongedaan.`,
+        `Alles in de prullenbak wissen (${posts.length} ${posts.length === 1 ? "activiteit" : "activiteiten"})? Dit kun je daarna niet meer terughalen.`,
       )
     ) {
       return;
@@ -73,15 +73,14 @@ export function TrashPage() {
     <section>
       <h1 className="page-title">Prullenbak</h1>
       <div className="card mt-4 rounded-lg border-accent-400/60 p-4 sm:p-5">
-        <p className="font-medium">Gratis database van 500 MB</p>
+        <p className="font-medium">We hebben 500 MB opslag</p>
         <p className="mt-2 text-sm text-primary-600 dark:text-primary-200">
-          Activiteitenmanagers: we draaien op een gratis Neon-database van 0,5 GB. Foto’s in
-          verwijderde berichten blijven ruimte innemen. Leeg de prullenbak als het kan, zodat het
-          bord niet volloopt.
+          Dit bord draait op een gratis database. Verwijderde foto’s blijven ruimte innemen tot je
+          de prullenbak leegt. Doe dat als het kan, dan blijft er plek voor nieuwe activiteiten.
         </p>
       </div>
       <p className="mt-4 max-w-2xl text-primary-600 dark:text-primary-200">
-        Verwijderde activiteiten blijven hier staan tot je ze terugzet of definitief wist.
+        Wat je van het bord haalt, blijft hier staan. Je kunt het terugzetten of voorgoed wissen.
       </p>
       <div className="mt-4 flex flex-wrap gap-2">
         <Link to="/bord" className="btn btn-secondary">
@@ -98,7 +97,7 @@ export function TrashPage() {
       {!loading && posts.length === 0 ? (
         <div className="card mt-6 rounded-lg p-10 text-center">
           <h2 className="font-serif text-2xl">Prullenbak is leeg</h2>
-          <p className="mt-2 text-primary-600 dark:text-primary-200">Er staan geen verwijderde berichten.</p>
+          <p className="mt-2 text-primary-600 dark:text-primary-200">Er staat hier niets meer.</p>
         </div>
       ) : null}
       <div className="mt-6 grid gap-6 md:grid-cols-2">

@@ -14,7 +14,7 @@ export function Footer({ light = false }) {
         <div className="max-w-md">
           <p className="font-serif text-lg text-inherit">Leviaan Campus</p>
           <p className={`mt-1 text-sm ${light ? "text-primary-200" : "text-primary-500 dark:text-primary-300"}`}>
-            Een rustig bord voor activiteiten thuis. Meer over Leviaan vind je op hun site.
+            Het activiteitenbord van dit huis. Meer over Leviaan staat op hun website.
           </p>
         </div>
         <nav className="flex flex-col gap-2 text-sm sm:items-end">
@@ -22,10 +22,10 @@ export function Footer({ light = false }) {
             leviaan.nl
           </a>
           <a href="https://github.com/raimonvibe/leviaan" className={link} target="_blank" rel="noreferrer">
-            Kijk naar de code!
+            Broncode op GitHub
           </a>
           <Link to="/privacy" className={link}>
-            Privacy-verklaring
+            Privacy
           </Link>
         </nav>
       </div>

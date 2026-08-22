@@ -54,7 +54,7 @@ router.post("/invites", async (req, res) => {
       return res.status(400).json({ error: "Dit is het beheerdersaccount." });
     }
     if (user.role === "editor") {
-      return res.status(400).json({ error: "Deze persoon is al redacteur." });
+      return res.status(400).json({ error: "Deze persoon mag al plaatsen." });
     }
     await query("UPDATE users SET role = 'editor' WHERE id = $1", [user.id]);
     return res.status(201).json({
@@ -90,7 +90,7 @@ router.delete("/invites/:id", async (req, res) => {
 router.patch("/:id/role", async (req, res) => {
   const role = String(req.body?.role || "");
   if (!["visitor", "editor"].includes(role)) {
-    return res.status(400).json({ error: "Kies bezoeker of redacteur." });
+    return res.status(400).json({ error: "Kies bewoner of iemand die mag plaatsen." });
   }
 
   const target = await query("SELECT id, username, role FROM users WHERE id = $1", [req.params.id]);

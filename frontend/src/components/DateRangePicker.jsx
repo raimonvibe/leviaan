@@ -33,7 +33,7 @@ export function DateRangePicker({ start, end, onChange }) {
     <div className="space-y-3">
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         <label className="block">
-          <span className="label">Begint</span>
+          <span className="label">Van</span>
           <input
             type="date"
             className="input"
@@ -44,7 +44,7 @@ export function DateRangePicker({ start, end, onChange }) {
           />
         </label>
         <label className="block">
-          <span className="label">Eindigt</span>
+          <span className="label">Tot</span>
           <input
             type="date"
             className="input"
@@ -56,7 +56,7 @@ export function DateRangePicker({ start, end, onChange }) {
         </label>
       </div>
       <p className="text-sm text-primary-500">
-        Eén dag: kies alleen de begindatum. Langer: zet daarna de einddatum.
+        Duurt het één dag? Kies alleen de eerste datum. Langer? Vul daarna de tweede datum in.
       </p>
       <div className="flex flex-wrap gap-2">
         {shortcuts.map((item) => (

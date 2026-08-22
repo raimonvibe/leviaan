@@ -46,7 +46,7 @@ export function requireUsername(req, res, next) {
 
 export function requireEditor(req, res, next) {
   if (!isEditorRole(req.user.role)) {
-    return res.status(403).json({ error: "Alleen redacteuren kunnen dit doen." });
+    return res.status(403).json({ error: "Alleen mensen die mogen plaatsen kunnen dit doen." });
   }
   next();
 }

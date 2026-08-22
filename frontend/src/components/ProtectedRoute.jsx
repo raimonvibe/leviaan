@@ -8,7 +8,7 @@ export function ProtectedRoute({ editor = false, creator = false }) {
   if (loading) {
     return (
       <div className="min-h-screen grid place-items-center text-primary-500">
-        Het bord wordt geopend…
+        Een ogenblik, het bord wordt geopend…
       </div>
     );
   }

@@ -1,7 +1,7 @@
 export function compressImage(file, maxWidth = 1280, quality = 0.82) {
   return new Promise((resolve, reject) => {
     if (!file.type.startsWith("image/")) {
-      reject(new Error("Kies een afbeelding."));
+      reject(new Error("Kies een foto."));
       return;
     }
 
@@ -21,7 +21,7 @@ export function compressImage(file, maxWidth = 1280, quality = 0.82) {
 
     image.onerror = () => {
       URL.revokeObjectURL(url);
-      reject(new Error("Deze afbeelding kon niet worden gelezen."));
+      reject(new Error("Deze foto kon niet worden geopend. Probeer een andere."));
     };
 
     image.src = url;

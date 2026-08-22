@@ -9,7 +9,7 @@ export function PrivacyPage() {
   return (
     <div className="flex min-h-dvh flex-col">
       <header className="border-b border-primary-100/70 bg-paper/95 dark:border-primary-700 dark:bg-primary-900/90">
-        <div className="mx-auto flex max-w-3xl items-center justify-between gap-3 px-4 py-3">
+        <div className="mx-auto flex max-w-3xl items-center justify-between gap-3 px-4 py-3 pt-[max(0.75rem,env(safe-area-inset-top))]">
           <Link to="/" aria-label="Naar home">
             <Logo />
           </Link>
@@ -19,19 +19,19 @@ export function PrivacyPage() {
         </div>
       </header>
       <main className="mx-auto w-full max-w-3xl flex-1 px-4 py-8 sm:py-10">
-        <p className="text-sm text-brick-600 dark:text-accent-300">Duidelijke taal</p>
-        <h1 className="page-title mt-1">Privacy-verklaring</h1>
+        <p className="text-sm text-brick-600 dark:text-accent-300">Gewone taal</p>
+        <h1 className="page-title mt-1">Hoe we met je gegevens omgaan</h1>
         <p className="mt-3 text-primary-600 dark:text-primary-200">
-          Deze pagina legt in gewone woorden uit wat Leviaan Campus met je gegevens doet. Geen kleine lettertjes.
+          Kort en duidelijk. Geen kleine lettertjes.
         </p>
 
         <div className="mt-8 space-y-6 text-primary-800 dark:text-primary-100">
           <section className="card rounded-lg p-5">
-            <h2 className="font-serif text-xl">Wat is dit?</h2>
+            <h2 className="font-serif text-xl">Wat is dit bord?</h2>
             <p className="mt-2 leading-relaxed">
-              Leviaan Campus is een activiteitenbord voor huisgenoten. De redactie hangt kaarten op met een
-              foto, tekst en datum. Jij logt in om mee te kijken. Dit bord hoort bij jullie huis. Meer over
-              de organisatie Leviaan staat op{" "}
+              Leviaan Campus is het activiteitenbord van dit huis. Wie mag plaatsen hangt een kaart
+              op met een foto, een tekst en een datum. Jij logt in om mee te kijken. Meer over
+              Leviaan zelf staat op{" "}
               <a className="underline decoration-accent-400 underline-offset-4" href="https://www.leviaan.nl" target="_blank" rel="noreferrer">
                 leviaan.nl
               </a>
@@ -40,46 +40,48 @@ export function PrivacyPage() {
           </section>
 
           <section className="card rounded-lg p-5">
-            <h2 className="font-serif text-xl">Wat slaan we op?</h2>
+            <h2 className="font-serif text-xl">Wat bewaren we?</h2>
             <ul className="mt-2 list-disc space-y-1 pl-5 leading-relaxed">
               <li>Je Google-inlog, zodat we weten dat jij het bent</li>
-              <li>Je e-mailadres, alleen voor het account</li>
-              <li>De gebruikersnaam die jij zelf kiest</li>
-              <li>Berichten: foto, tekst en datum</li>
-              <li>Of je je bij een activiteit hebt aangemeld</li>
+              <li>Je e-mailadres, alleen voor je account</li>
+              <li>De naam die jij zelf kiest</li>
+              <li>Activiteiten: foto, tekst en datum</li>
+              <li>Of je hebt gezegd dat je meedoet</li>
             </ul>
           </section>
 
           <section className="card rounded-lg p-5">
             <h2 className="font-serif text-xl">Wat zien anderen?</h2>
             <p className="mt-2 leading-relaxed">
-              Bewoners zien elkaars namen niet. Je kunt wel aanvinken of je bij een activiteit bent. Alleen
-              redactie en de beheerder zien welke namen zich hebben aangemeld. Je e-mailadres blijft privé.
+              Bewoners zien elkaars namen niet bij een activiteit. Je kunt wel zeggen of je meedoet.
+              Alleen de beheerder en mensen die mogen plaatsen zien wie zich heeft opgegeven. Je
+              e-mailadres blijft geheim.
             </p>
           </section>
 
           <section className="card rounded-lg p-5">
-            <h2 className="font-serif text-xl">Google</h2>
+            <h2 className="font-serif text-xl">Inloggen met Google</h2>
             <p className="mt-2 leading-relaxed">
-              Je logt in met Google. Wij krijgen van Google een bevestiging van je account. We slaan geen
-              wachtwoord van je op. Google heeft een eigen privacy-beleid.
+              Je komt binnen met je Google-account. Wij krijgen van Google een bevestiging, geen
+              wachtwoord. Google heeft een eigen privacybeleid.
             </p>
           </section>
 
           <section className="card rounded-lg p-5">
             <h2 className="font-serif text-xl">Foto’s</h2>
             <p className="mt-2 leading-relaxed">
-              Foto’s bij activiteiten worden bewaard bij het bericht, zodat iedereen op het bord ze kan
-              zien. Alleen redactie en de beheerder kunnen foto’s plaatsen of weghalen. Weggehaalde
-              berichten staan eerst in de prullenbak.
+              Een foto hoort bij de activiteit, zodat iedereen die kan zien. Alleen mensen die
+              mogen plaatsen kunnen een foto toevoegen of weghalen. Wat van het bord gaat, staat
+              eerst in de prullenbak.
             </p>
           </section>
 
           <section className="card rounded-lg p-5">
-            <h2 className="font-serif text-xl">Iets laten verwijderen?</h2>
+            <h2 className="font-serif text-xl">Iets laten weghalen?</h2>
             <p className="mt-2 leading-relaxed">
-              Vraag het aan de beheerder van dit bord. Die kan een account-rol aanpassen of een bericht
-              terugzetten of wissen. Voor privacy van de organisatie Leviaan zelf, kijk op{" "}
+              Vraag het aan de beheerder van dit bord. Die kan iemands rol aanpassen of een
+              activiteit terugzetten of wissen. Voor de privacy van Leviaan als organisatie, kijk
+              op{" "}
               <a className="underline decoration-accent-400 underline-offset-4" href="https://www.leviaan.nl" target="_blank" rel="noreferrer">
                 leviaan.nl
               </a>
@@ -89,10 +91,12 @@ export function PrivacyPage() {
         </div>
 
         <Link to="/" className="btn btn-secondary mt-8">
-          Terug naar home
+          Terug naar het bord
         </Link>
       </main>
-      <Footer />
+      <div className="pb-[max(0.75rem,env(safe-area-inset-bottom))]">
+        <Footer />
+      </div>
     </div>
   );
 }

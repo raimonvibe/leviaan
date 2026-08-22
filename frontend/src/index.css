@@ -48,10 +48,16 @@
   color-scheme: light;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
 }
 
 .dark {
   color-scheme: dark;
+}
+
+html {
+  overflow-x: hidden;
 }
 
 body {
@@ -69,7 +75,7 @@ body {
 
 @layer components {
   .btn {
-    @apply inline-flex items-center justify-center gap-2 min-h-11 px-3.5 py-2 rounded-md text-sm font-medium transition-colors duration-150 disabled:opacity-50 disabled:pointer-events-none;
+    @apply inline-flex items-center justify-center gap-2 min-h-12 px-3.5 py-2 rounded-md text-sm font-medium transition-colors duration-150 disabled:opacity-50 disabled:pointer-events-none;
   }
 
   .btn-primary {
@@ -93,7 +99,11 @@ body {
   }
 
   .input {
-    @apply w-full min-h-11 px-3 py-2 border border-primary-200 rounded-md bg-white text-base focus:outline-none focus:ring-2 focus:ring-accent-400 focus:border-primary-600 dark:bg-primary-900 dark:border-primary-600 dark:placeholder-primary-400;
+    @apply w-full min-w-0 min-h-12 px-3 py-2 border border-primary-200 rounded-md bg-white text-base focus:outline-none focus:ring-2 focus:ring-accent-400 focus:border-primary-600 dark:bg-primary-900 dark:border-primary-600 dark:placeholder-primary-400;
+  }
+
+  .input[type="date"] {
+    max-width: 100%;
   }
 
   .label {
@@ -123,5 +133,11 @@ body {
 
   .chip-row::-webkit-scrollbar {
     display: none;
+  }
+
+  .google-login-slot,
+  .google-login-slot > div,
+  .google-login-slot iframe {
+    max-width: 100% !important;
   }
 }

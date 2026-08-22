@@ -15,7 +15,7 @@ export function PostCard({ post, canEdit, onDelete, onRestore, onAttend, compact
   async function copyLink() {
     const url = `${window.location.origin}/bord?bericht=${post.id}`;
     await navigator.clipboard.writeText(url);
-    toast.show({ message: "Link gekopieerd.", duration: 4000 });
+    toast.show({ message: "De link staat op je klembord.", duration: 4000 });
   }
 
   return (
@@ -30,7 +30,7 @@ export function PostCard({ post, canEdit, onDelete, onRestore, onAttend, compact
           >
             <img src={post.imageData} alt={post.title} className="h-full w-full object-cover" />
             <span className="pointer-events-none absolute inset-x-0 bottom-0 bg-primary-900/50 px-3 py-2 text-left text-xs text-white opacity-0 sm:text-sm sm:group-hover:opacity-100 group-focus-visible:opacity-100">
-              Tik om te vergroten
+              Tik voor een grotere foto
             </span>
           </button>
         ) : (
@@ -66,15 +66,15 @@ export function PostCard({ post, canEdit, onDelete, onRestore, onAttend, compact
             <label className="flex min-h-11 cursor-pointer items-center gap-3 text-sm">
               <input
                 type="checkbox"
-                className="h-4 w-4 accent-primary-600"
+                className="h-5 w-5 accent-primary-600"
                 checked={Boolean(post.attending)}
                 onChange={() => onAttend?.(post)}
               />
-              <span>{post.attending ? "Je hebt je aangemeld" : "Ik ben erbij"}</span>
+              <span>{post.attending ? "Je doet mee" : "Ik doe mee"}</span>
             </label>
             {canEdit ? (
               <div className="rounded-md bg-primary-50/80 px-3 py-2 text-sm dark:bg-primary-900/60">
-                <p className="text-primary-500">Aanwezig ({post.attendeeCount ?? 0})</p>
+                <p className="text-primary-500">Wie doen mee ({post.attendeeCount ?? 0})</p>
                 {post.attendees?.length ? (
                   <ul className="mt-1 space-y-0.5">
                     {post.attendees.map((name) => (
@@ -82,7 +82,7 @@ export function PostCard({ post, canEdit, onDelete, onRestore, onAttend, compact
                     ))}
                   </ul>
                 ) : (
-                  <p className="mt-1 text-primary-500">Nog niemand.</p>
+                  <p className="mt-1 text-primary-500">Nog niemand heeft zich opgegeven.</p>
                 )}
               </div>
             ) : null}
@@ -96,26 +96,26 @@ export function PostCard({ post, canEdit, onDelete, onRestore, onAttend, compact
                   Terugzetten
                 </button>
                 <button type="button" className="btn btn-brick" onClick={() => onDelete(post)}>
-                  Wissen
+                  Voorgoed weg
                 </button>
               </>
             ) : (
               <>
                 <Link to={`/berichten/${post.id}/bewerken`} className="btn btn-secondary">
-                  Bewerken
+                  Aanpassen
                 </Link>
                 <button type="button" className="btn btn-brick" onClick={() => onDelete(post)}>
-                  Weg
+                  Verwijderen
                 </button>
                 <button type="button" className="btn btn-ghost" onClick={copyLink}>
-                  Link
+                  Deel link
                 </button>
               </>
             )}
           </div>
         ) : (
           <button type="button" className="btn btn-ghost px-0" onClick={copyLink}>
-            Kopieer link
+            Deel deze activiteit
           </button>
         )}
       </div>

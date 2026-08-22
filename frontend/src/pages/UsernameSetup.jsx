@@ -29,18 +29,18 @@ export function UsernameSetupPage() {
 
   return (
     <div className="flex min-h-dvh flex-col">
-      <div className="mx-auto flex w-full max-w-md flex-1 flex-col justify-center px-4 py-10">
+      <div className="mx-auto flex w-full max-w-md flex-1 flex-col justify-center px-4 py-10 pt-[max(2.5rem,env(safe-area-inset-top))]">
         <Link to="/" aria-label="Naar home">
           <Logo />
         </Link>
         <form onSubmit={handleSubmit} className="card mt-6 rounded-lg p-5 sm:p-7">
-          <h1 className="page-title">Kies je gebruikersnaam</h1>
+          <h1 className="page-title">Kies een naam</h1>
           <p className="mt-3 text-primary-600 dark:text-primary-200">
-            Alleen deze naam is zichtbaar op het bord. Je e-mailadres blijft privé
-            {user?.email ? " — ook voor huisgenoten." : "."}
+            Deze naam zien huisgenoten op het bord. Je e-mailadres blijft geheim
+            {user?.email ? ", ook voor hen." : "."}
           </p>
           <label className="label mt-6" htmlFor="username">
-            Gebruikersnaam
+            Jouw naam op het bord
           </label>
           <input
             id="username"
@@ -53,7 +53,7 @@ export function UsernameSetupPage() {
             maxLength={24}
             required
           />
-          <p className="mt-2 text-sm text-primary-500">3 tot 24 tekens: letters, cijfers of _</p>
+          <p className="mt-2 text-sm text-primary-500">3 tot 24 tekens. Letters, cijfers of _ zijn goed.</p>
           {error ? <p className="mt-3 text-sm text-brick-600">{error}</p> : null}
           <button type="submit" className="btn btn-primary mt-6" disabled={saving}>
             {saving ? "Opslaan…" : "Naar het bord"}
