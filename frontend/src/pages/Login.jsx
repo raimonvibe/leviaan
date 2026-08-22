@@ -70,35 +70,31 @@ export function LoginPage() {
   if (isAuthenticated) return <Navigate to="/bord" replace />;
 
   return (
-    <div className="flex min-h-dvh flex-col overflow-x-hidden bg-primary-600 text-white">
+    <div className="flex min-h-dvh flex-col overflow-x-hidden">
       <header className="flex items-center justify-between gap-3 px-4 pb-3 pt-[max(0.75rem,env(safe-area-inset-top))] sm:px-6">
         <Link to="/" className="min-w-0" aria-label="Naar het begin">
           <Logo />
         </Link>
-        <button
-          type="button"
-          onClick={toggleTheme}
-          className="btn shrink-0 border border-white/50 bg-white/10 px-3 text-white hover:bg-white/20"
-        >
+        <button type="button" onClick={toggleTheme} className="btn btn-ghost shrink-0">
           {isDark ? "Licht" : "Donker"}
         </button>
       </header>
 
       <div className="mx-auto flex w-full max-w-lg flex-1 flex-col justify-center gap-6 px-4 py-4 sm:px-6 lg:max-w-5xl lg:grid lg:grid-cols-2 lg:items-center lg:gap-12 lg:py-10">
         <div className="order-2 text-center lg:order-1 lg:text-left">
-          <p className="font-serif text-3xl leading-tight sm:text-4xl lg:text-5xl">
+          <p className="font-serif text-3xl leading-tight text-ink sm:text-4xl lg:text-5xl">
             Jouw huis.
             <br />
             Jouw activiteiten.
           </p>
-          <p className="mx-auto mt-3 max-w-md text-sm text-primary-100 sm:text-base lg:mx-0">
+          <p className="muted mx-auto mt-3 max-w-md text-sm sm:text-base lg:mx-0">
             Hier zie je wat er in huis speelt: een foto, een korte tekst en wanneer het is.
           </p>
         </div>
 
         <div className="card order-1 w-full min-w-0 rounded-lg p-4 text-ink sm:p-6 lg:order-2 lg:p-7">
-          <h1 className="font-serif text-2xl sm:text-3xl">Inloggen</h1>
-          <p className="mt-1 text-sm text-primary-600 dark:text-primary-200">
+          <h1 className="font-serif text-2xl text-ink sm:text-3xl">Inloggen</h1>
+          <p className="muted mt-1 text-sm">
             Gebruik je Google-account. Dat is genoeg om binnen te komen. Nog geen account?{" "}
             <Link to="/google-account" className="underline decoration-accent-400 underline-offset-4">
               Zo maak je er een
@@ -107,7 +103,7 @@ export function LoginPage() {
           </p>
           <div className="mt-5">
             {!GOOGLE_CLIENT_ID ? (
-              <p className="text-sm text-brick-600 dark:text-brick-100">Zet VITE_GOOGLE_CLIENT_ID in frontend/.env.</p>
+              <p className="note-error text-sm">Zet VITE_GOOGLE_CLIENT_ID in frontend/.env.</p>
             ) : (
               <GoogleSignIn
                 onAccessToken={async (accessToken) => {
@@ -118,8 +114,8 @@ export function LoginPage() {
               />
             )}
           </div>
-          {error ? <p className="mt-4 text-sm text-brick-600 dark:text-brick-100">{error}</p> : null}
-          <p className="mt-5 text-sm text-primary-600 dark:text-primary-300">
+          {error ? <p className="note-error mt-4 text-sm">{error}</p> : null}
+          <p className="muted mt-5 text-sm">
             Door in te loggen ga je akkoord met hoe we met je gegevens omgaan. Lees de{" "}
             <Link to="/privacy" className="underline decoration-accent-400 underline-offset-4">
               privacy-uitleg
@@ -130,7 +126,7 @@ export function LoginPage() {
       </div>
 
       <div className="pb-[max(0.5rem,env(safe-area-inset-bottom))]">
-        <Footer light />
+        <Footer />
       </div>
     </div>
   );
