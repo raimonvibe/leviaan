@@ -85,13 +85,13 @@ export function PostFormPage() {
   }
 
   if (loading) {
-      return <p className="text-primary-500">De activiteit wordt geladen…</p>;
+      return <p className="text-primary-500 dark:text-primary-300">De activiteit wordt geladen…</p>;
   }
 
   return (
-    <section className="mx-auto max-w-xl">
+    <section className="mx-auto w-full min-w-0 max-w-xl">
       <h1 className="page-title">{isEdit ? "Activiteit aanpassen" : "Nieuwe activiteit"}</h1>
-      <form onSubmit={handleSubmit} className="card mt-5 space-y-5 rounded-lg p-4 sm:p-6">
+      <form onSubmit={handleSubmit} className="card mt-5 min-w-0 space-y-5 overflow-x-hidden rounded-lg p-4 sm:p-6">
         <div>
           <label className="label" htmlFor="title">
             Wat is de titel?
@@ -104,7 +104,7 @@ export function PostFormPage() {
             maxLength={160}
             required
           />
-          <p className="mt-1 text-right text-xs text-primary-500">{form.title.length}/160</p>
+          <p className="mt-1 text-right text-xs text-primary-500 dark:text-primary-300">{form.title.length}/160</p>
         </div>
         <div>
           <DateRangePicker
@@ -127,14 +127,16 @@ export function PostFormPage() {
             maxLength={4000}
             required
           />
-          <p className="mt-1 text-right text-xs text-primary-500">{form.body.length}/4000</p>
+          <p className="mt-1 text-right text-xs text-primary-500 dark:text-primary-300">{form.body.length}/4000</p>
         </div>
         <div>
           <p className="label">Foto</p>
           <label
             htmlFor="image"
-            className={`block cursor-pointer rounded-lg border border-dashed p-5 text-center text-sm ${
-              dragging ? "border-accent-400 bg-accent-50 dark:bg-primary-700" : "border-primary-200 dark:border-primary-600"
+            className={`block cursor-pointer rounded-lg border border-dashed p-5 text-center text-sm text-primary-700 dark:text-primary-100 ${
+              dragging
+                ? "border-accent-400 bg-accent-50 dark:bg-primary-700"
+                : "border-primary-300 bg-white/60 dark:border-primary-400 dark:bg-primary-900"
             }`}
             onDragOver={(event) => {
               event.preventDefault();
@@ -171,7 +173,7 @@ export function PostFormPage() {
             </div>
           ) : null}
         </div>
-        {error ? <p className="text-sm text-brick-600">{error}</p> : null}
+        {error ? <p className="text-sm text-brick-600 dark:text-brick-100">{error}</p> : null}
         <div className="flex flex-col-reverse gap-2 sm:flex-row">
           <Link to="/bord" className="btn btn-secondary w-full sm:w-auto">
             Annuleren

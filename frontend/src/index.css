@@ -87,23 +87,49 @@ body {
   }
 
   .btn-secondary {
-    @apply bg-transparent text-primary-700 border border-primary-200 hover:bg-primary-50 dark:text-accent-200 dark:border-primary-600 dark:hover:bg-primary-800;
+    @apply bg-transparent text-primary-700 border border-primary-200 hover:bg-primary-50 dark:text-accent-200 dark:border-primary-400 dark:hover:bg-primary-700;
   }
 
   .btn-ghost {
-    @apply text-primary-700 hover:bg-primary-50 dark:text-accent-200 dark:hover:bg-primary-800;
+    @apply text-primary-700 hover:bg-primary-50 dark:text-accent-200 dark:hover:bg-primary-700;
   }
 
   .card {
-    @apply bg-paper border border-primary-100/80 dark:bg-primary-800 dark:border-primary-600;
+    @apply bg-paper border border-primary-200 dark:border-primary-400;
   }
 
   .input {
-    @apply w-full min-w-0 min-h-12 px-3 py-2 border border-primary-200 rounded-md bg-white text-base focus:outline-none focus:ring-2 focus:ring-accent-400 focus:border-primary-600 dark:bg-primary-900 dark:border-primary-600 dark:placeholder-primary-400;
+    @apply w-full min-w-0 min-h-12 px-3 py-2 border border-primary-200 rounded-md bg-white text-base text-ink focus:outline-none focus:ring-2 focus:ring-accent-400 focus:border-primary-600 dark:bg-primary-900 dark:border-primary-400 dark:text-ink dark:placeholder-primary-300;
   }
 
   .input[type="date"] {
+    display: block;
+    width: 100%;
     max-width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+    appearance: none;
+    -webkit-appearance: none;
+  }
+
+  .input[type="date"]::-webkit-datetime-edit,
+  .input[type="date"]::-webkit-datetime-edit-fields-wrapper,
+  .input[type="date"]::-webkit-datetime-edit-text,
+  .input[type="date"]::-webkit-datetime-edit-month-field,
+  .input[type="date"]::-webkit-datetime-edit-day-field,
+  .input[type="date"]::-webkit-datetime-edit-year-field {
+    color: inherit;
+    min-width: 0;
+  }
+
+  .input[type="date"]::-webkit-calendar-picker-indicator {
+    margin-left: auto;
+    cursor: pointer;
+  }
+
+  .dark .input[type="date"]::-webkit-calendar-picker-indicator {
+    filter: invert(1);
+    opacity: 0.9;
   }
 
   .label {

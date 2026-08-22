@@ -30,9 +30,9 @@ export function DateRangePicker({ start, end, onChange }) {
   ];
 
   return (
-    <div className="space-y-3">
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-        <label className="block">
+    <div className="min-w-0 w-full space-y-3">
+      <div className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2">
+        <label className="block min-w-0">
           <span className="label">Van</span>
           <input
             type="date"
@@ -43,7 +43,7 @@ export function DateRangePicker({ start, end, onChange }) {
             required
           />
         </label>
-        <label className="block">
+        <label className="block min-w-0">
           <span className="label">Tot</span>
           <input
             type="date"
@@ -55,12 +55,17 @@ export function DateRangePicker({ start, end, onChange }) {
           />
         </label>
       </div>
-      <p className="text-sm text-primary-500">
+      <p className="text-sm text-primary-600 dark:text-primary-200">
         Duurt het één dag? Kies alleen de eerste datum. Langer? Vul daarna de tweede datum in.
       </p>
-      <div className="flex flex-wrap gap-2">
+      <div className="grid grid-cols-2 gap-2">
         {shortcuts.map((item) => (
-          <button key={item.label} type="button" className="btn btn-secondary" onClick={item.run}>
+          <button
+            key={item.label}
+            type="button"
+            className="btn btn-secondary w-full min-w-0 px-2"
+            onClick={item.run}
+          >
             {item.label}
           </button>
         ))}
