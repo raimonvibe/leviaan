@@ -18,7 +18,7 @@ function GoogleSignIn({ isDark, onCredential, onError }) {
 
     function measure() {
       const next = Math.floor(node.getBoundingClientRect().width);
-      setWidth(Math.min(400, Math.max(200, next));
+        setWidth(Math.min(400, Math.max(200, next)));
     }
 
     measure();
