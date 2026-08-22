@@ -6,6 +6,7 @@ import { DashboardPage } from "./pages/Dashboard.jsx";
 import { EditorsPage } from "./pages/Editors.jsx";
 import { LoginPage } from "./pages/Login.jsx";
 import { PostFormPage } from "./pages/PostForm.jsx";
+import { PrivacyPage } from "./pages/Privacy.jsx";
 import { TrashPage } from "./pages/Trash.jsx";
 import { UsernameSetupPage } from "./pages/UsernameSetup.jsx";
 
@@ -14,6 +15,7 @@ export function App() {
     <Routes>
       <Route path="/inloggen" element={<LoginPage />} />
       <Route path="/welkom" element={<UsernameSetupPage />} />
+      <Route path="/privacy" element={<PrivacyPage />} />
       <Route element={<ProtectedRoute />}>
         <Route element={<Layout />}>
           <Route path="/bord" element={<BoardPage />} />

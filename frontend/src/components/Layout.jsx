@@ -1,6 +1,7 @@
 import { NavLink, Outlet } from "react-router";
 import { useAuth } from "../contexts/AuthContext.jsx";
 import { useTheme } from "../contexts/ThemeContext.jsx";
+import { Footer } from "./Footer.jsx";
 import { Logo } from "./Logo.jsx";
 
 const linkClass = ({ isActive }) =>
@@ -41,7 +42,7 @@ export function Layout() {
   );
 
   return (
-    <div className="min-h-dvh">
+    <div className="flex min-h-dvh flex-col">
       <header className="sticky top-0 z-40 border-b border-primary-100/70 bg-paper/95 backdrop-blur dark:border-primary-700 dark:bg-primary-900/90">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-3 pt-[max(0.75rem,env(safe-area-inset-top))]">
           <NavLink to="/bord" className="min-w-0 shrink">
@@ -66,9 +67,10 @@ export function Layout() {
         </div>
         <nav className="chip-row px-4 pb-2 lg:hidden">{links}</nav>
       </header>
-      <main className="mx-auto w-full max-w-6xl px-4 py-6 pb-[max(1.5rem,env(safe-area-inset-bottom))] sm:py-8">
+      <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-6 sm:py-8">
         <Outlet />
       </main>
+      <Footer />
     </div>
   );
 }

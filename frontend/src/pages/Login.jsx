@@ -1,7 +1,8 @@
 import { GoogleLogin } from "@react-oauth/google";
 import { useState } from "react";
-import { Navigate } from "react-router";
+import { Link, Navigate } from "react-router";
 import { getErrorMessage } from "../api/client.js";
+import { Footer } from "../components/Footer.jsx";
 import { Logo } from "../components/Logo.jsx";
 import { GOOGLE_CLIENT_ID } from "../config.js";
 import { useAuth } from "../contexts/AuthContext.jsx";
@@ -16,8 +17,8 @@ export function LoginPage() {
   if (isAuthenticated) return <Navigate to="/bord" replace />;
 
   return (
-    <div className="min-h-dvh bg-primary-600 text-white">
-      <div className="mx-auto grid min-h-dvh max-w-5xl items-center gap-8 px-5 py-10 lg:grid-cols-2 lg:gap-12">
+    <div className="flex min-h-dvh flex-col bg-primary-600 text-white">
+      <div className="mx-auto grid w-full max-w-5xl flex-1 items-center gap-8 px-5 py-10 lg:grid-cols-2 lg:gap-12">
         <div>
           <div className="flex items-center justify-between gap-3">
             <Logo />
@@ -68,8 +69,16 @@ export function LoginPage() {
             </div>
           )}
           {error ? <p className="mt-4 text-sm text-brick-600">{error}</p> : null}
+          <p className="mt-5 text-sm text-primary-500">
+            Door in te loggen ga je akkoord met de{" "}
+            <Link to="/privacy" className="underline decoration-accent-400 underline-offset-4">
+              privacy-verklaring
+            </Link>
+            .
+          </p>
         </div>
       </div>
+      <Footer light />
     </div>
   );
 }
