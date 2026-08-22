@@ -84,8 +84,8 @@ function validatePost({ title, body, activityDate, activityEndDate, imageData, r
   if (cleanTitle.length < 2 || cleanTitle.length > 160) {
     return { error: "Geef een titel van 2 tot 160 tekens." };
   }
-  if (cleanBody.length < 2 || cleanBody.length > 4000) {
-    return { error: "De tekst moet tussen 2 en 4000 tekens zijn." };
+  if (cleanBody.length > 4000) {
+    return { error: "De tekst mag maximaal 4000 tekens zijn." };
   }
   if (!/^\d{4}-\d{2}-\d{2}$/.test(cleanStart) || !/^\d{4}-\d{2}-\d{2}$/.test(cleanEnd)) {
     return { error: "Kies een begindatum en een einddatum." };
@@ -163,7 +163,7 @@ router.get("/:id", requireAuth, requireUsername, async (req, res) => {
 });
 
 router.post("/", requireAuth, requireUsername, requireEditor, async (req, res) => {
-  const parsed = validatePost({ ...req.body, requireImage: true });
+  const parsed = validatePost({ ...req.body, requireImage: false });
   if (parsed.error) {
     return res.status(400).json({ error: parsed.error });
   }

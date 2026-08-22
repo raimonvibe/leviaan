@@ -57,7 +57,7 @@ export function PostCard({ post, canEdit, onDelete, onRestore, onAttend, compact
           <p className="text-sm text-brick-600 dark:text-accent-300">{range}</p>
           <h2 className="font-serif text-xl leading-tight text-ink sm:text-2xl">{post.title}</h2>
         </div>
-        {compact ? null : (
+        {compact || !post.body ? null : (
           <p className="whitespace-pre-wrap text-sm leading-relaxed text-primary-700 sm:text-base dark:text-primary-100">
             {post.body}
           </p>

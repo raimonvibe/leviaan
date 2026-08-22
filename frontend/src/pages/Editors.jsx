@@ -14,8 +14,14 @@ export function EditorsPage() {
   const [email, setEmail] = useState("");
   const [error, setError] = useState("");
 
-  const begeleiders = users.filter((user) => (user.baseRole || user.role) === "editor");
-  const bewoners = users.filter((user) => (user.baseRole || user.role) === "visitor");
+  const begeleiders = users.filter((user) => {
+    const actual = user.baseRole || user.role;
+    return actual === "editor";
+  });
+  const bewoners = users.filter((user) => {
+    const actual = user.baseRole || user.role;
+    return actual === "visitor";
+  });
 
   async function load() {
     const response = await api.get("/editors");
@@ -98,7 +104,10 @@ export function EditorsPage() {
   }
 
   function canRemove(user) {
-    return user.id !== me?.id;
+    const actual = user.baseRole || user.role;
+    if (user.id === me?.id) return false;
+    if (actual === "creator" || user.role === "creator") return false;
+    return true;
   }
 
   if (!isEditor) {
@@ -164,9 +173,7 @@ export function EditorsPage() {
 
       <div>
         <h2 className="font-serif text-xl text-ink">Begeleiders</h2>
-        <p className="mt-1 text-sm text-primary-600 dark:text-primary-200">
-          Mogen plaatsen. De beheerder kun je niet verwijderen.
-        </p>
+        <p className="mt-1 text-sm text-primary-600 dark:text-primary-200">Mogen plaatsen.</p>
         {begeleiders.length === 0 ? (
           <div className="card mt-4 rounded-lg p-5 text-primary-600 dark:text-primary-200">
             Er is nog geen begeleider toegevoegd.

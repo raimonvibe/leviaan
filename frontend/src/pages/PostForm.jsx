@@ -65,10 +65,6 @@ export function PostFormPage() {
   async function handleSubmit(event) {
     event.preventDefault();
     if (!isEditor) return;
-    if (!form.imageData) {
-      setError("Kies nog een foto.");
-      return;
-    }
     setSaving(true);
     setError("");
     try {
@@ -124,7 +120,7 @@ export function PostFormPage() {
         </div>
         <div>
           <label className="label" htmlFor="body">
-            Wat gebeurt er?
+            Wat gebeurt er? <span className="font-normal text-primary-500 dark:text-primary-300">(niet verplicht)</span>
           </label>
           <textarea
             id="body"
@@ -132,12 +128,13 @@ export function PostFormPage() {
             value={form.body}
             onChange={(event) => updateField("body", event.target.value)}
             maxLength={4000}
-            required
           />
           <p className="muted mt-1 text-right text-xs">{form.body.length}/4000</p>
         </div>
         <div>
-          <p className="label">Foto</p>
+          <p className="label">
+            Foto <span className="font-normal text-primary-500 dark:text-primary-300">(niet verplicht)</span>
+          </p>
           <label
             htmlFor="image"
             className={`block cursor-pointer rounded-lg border border-dashed p-5 text-center text-sm text-primary-700 dark:text-primary-100 ${
@@ -156,7 +153,7 @@ export function PostFormPage() {
               setImageFile(event.dataTransfer.files?.[0]);
             }}
           >
-            Tik om een foto te kiezen. Op een computer mag je er ook een naartoe slepen.
+            Tik om een foto te kiezen, of sla over. Op een computer mag je er ook een naartoe slepen.
             <input
               id="image"
               type="file"
@@ -175,7 +172,7 @@ export function PostFormPage() {
                 />
               </button>
               <button type="button" className="btn btn-ghost" onClick={() => updateField("imageData", "")}>
-                Andere foto
+                Foto weghalen
               </button>
             </div>
           ) : null}
