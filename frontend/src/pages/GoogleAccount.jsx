@@ -75,7 +75,7 @@ export function GoogleAccountPage() {
             <h2 className="font-serif text-xl">Daarna op dit bord</h2>
             <p className="mt-2 leading-relaxed">
               De eerste keer kies je een naam voor dit bord. Die naam zien bewoners en begeleiders.
-              Je e-mailadres blijft geheim.
+              Je mag de naam later wijzigen. Je e-mailadres blijft geheim.
             </p>
           </section>
 

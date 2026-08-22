@@ -27,6 +27,7 @@ export function App() {
           <Route path="/overzicht" element={<DashboardPage />} />
           <Route path="/begeleiders" element={<PostersPage />} />
           <Route path="/bewoners" element={<ResidentsPage />} />
+          <Route path="/naam" element={<UsernameSetupPage changing />} />
           <Route path="/redacteuren" element={<Navigate to="/begeleiders" replace />} />
           <Route element={<ProtectedRoute editor />}>
             <Route path="/berichten/nieuw" element={<PostFormPage />} />

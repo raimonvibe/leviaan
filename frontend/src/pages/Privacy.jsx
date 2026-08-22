@@ -44,7 +44,7 @@ export function PrivacyPage() {
             <ul className="mt-2 list-disc space-y-1 pl-5 leading-relaxed">
               <li>Je Google-inlog, zodat we weten dat jij het bent</li>
               <li>Je e-mailadres, alleen voor je account</li>
-              <li>De naam die jij zelf kiest</li>
+              <li>De naam die jij kiest. Die kun je later wijzigen</li>
               <li>Activiteiten: foto, tekst en datum</li>
               <li>Of je hebt gezegd dat je meedoet</li>
             </ul>

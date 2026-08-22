@@ -189,19 +189,19 @@ router.patch("/role", requireAuth, requireUsername, async (req, res) => {
 router.post("/username", requireAuth, async (req, res) => {
   const username = String(req.body?.username || "").trim();
 
-  if (req.user.username) {
-    return res.status(400).json({ error: "Je gebruikersnaam staat al vast." });
-  }
-
   if (!/^[a-zA-Z0-9_]{3,24}$/.test(username)) {
     return res.status(400).json({
       error: "Kies 3 tot 24 tekens: letters, cijfers of een underscore.",
     });
   }
 
+  if (req.user.username && req.user.username.toLowerCase() === username.toLowerCase()) {
+    return res.json({ user: currentUserPayload(req.user) });
+  }
+
   const taken = await query(
-    "SELECT id FROM users WHERE lower(username) = lower($1)",
-    [username],
+    "SELECT id FROM users WHERE lower(username) = lower($1) AND id <> $2",
+    [username, req.user.id],
   );
   if (taken.rowCount > 0) {
     return res.status(409).json({ error: "Deze gebruikersnaam is al in gebruik." });

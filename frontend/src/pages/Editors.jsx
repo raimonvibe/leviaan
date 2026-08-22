@@ -50,6 +50,25 @@ export function EditorsPage() {
     }
   }
 
+  async function removeUser(user) {
+    setError("");
+    const name = user.username || "Deze persoon";
+    if (
+      !window.confirm(
+        `${name} wordt van het bord gehaald. Activiteiten die deze persoon plaatste gaan ook weg.`,
+      )
+    ) {
+      return;
+    }
+    try {
+      await api.delete(`/editors/${user.id}`);
+      setNotice(`${name} is van het bord gehaald.`);
+      await load();
+    } catch (removeError) {
+      setError(getErrorMessage(removeError, "Verwijderen is niet gelukt."));
+    }
+  }
+
   async function revokeInvite(id) {
     try {
       await api.delete(`/editors/invites/${id}`);
@@ -66,9 +85,10 @@ export function EditorsPage() {
         <h1 className="page-title mt-1">Beheer</h1>
         <p className="mt-2 max-w-2xl text-primary-600 dark:text-primary-200">
           Jij ziet alles: activiteiten, wie meedoet en de namen van bewoners. Voeg hier begeleiders
-          toe met hun Google-e-mail. Zij mogen plaatsen. Jij staat niet in hun lijst. Een begeleider
-          blijft begeleider.
+          toe met hun Google-e-mail. Testers kun je van het bord halen voor de start.
         </p>
+        {notice ? <p className="mt-3 text-sm text-primary-600 dark:text-accent-300">{notice}</p> : null}
+        {error ? <p className="note-error mt-3 text-sm">{error}</p> : null}
       </div>
 
       <form onSubmit={invite} className="card rounded-lg p-4 sm:p-6">
@@ -89,8 +109,6 @@ export function EditorsPage() {
             Toevoegen
           </button>
         </div>
-        {notice ? <p className="mt-3 text-sm text-primary-600 dark:text-accent-300">{notice}</p> : null}
-        {error ? <p className="mt-3 text-sm text-brick-600 dark:text-brick-100">{error}</p> : null}
       </form>
 
       {invites.length > 0 ? (
@@ -127,6 +145,9 @@ export function EditorsPage() {
               <li key={user.id} className="card rounded-lg p-4">
                 <p className="font-serif text-lg text-ink">{user.username || "Nog geen naam gekozen"}</p>
                 <p className="mt-1 text-sm text-primary-600 dark:text-primary-200">Begeleider · ziet wie meedoet</p>
+                <button type="button" className="btn btn-brick mt-4" onClick={() => removeUser(user)}>
+                  Van het bord halen
+                </button>
               </li>
             ))}
           </ul>
@@ -145,8 +166,11 @@ export function EditorsPage() {
         ) : (
           <ul className="card mt-4 divide-y divide-primary-100 overflow-hidden rounded-lg dark:divide-primary-400">
             {bewoners.map((user) => (
-              <li key={user.id} className="px-4 py-3 sm:px-5">
+              <li key={user.id} className="flex flex-wrap items-center justify-between gap-3 px-4 py-3 sm:px-5">
                 <p className="font-medium text-ink">{user.username || "Nog geen naam gekozen"}</p>
+                <button type="button" className="btn btn-brick" onClick={() => removeUser(user)}>
+                  Van het bord halen
+                </button>
               </li>
             ))}
           </ul>

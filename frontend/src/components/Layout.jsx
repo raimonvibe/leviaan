@@ -23,6 +23,9 @@ export function Layout() {
       <NavLink to="/overzicht" className={linkClass}>
         Overzicht
       </NavLink>
+      <NavLink to="/naam" className={linkClass}>
+        Naam
+      </NavLink>
       {isEditor ? (
         <>
           <NavLink to="/berichten/nieuw" className={linkClass}>
@@ -85,7 +88,9 @@ export function Layout() {
                 Terug naar begeleider
               </button>
             ) : null}
-            <p className="hidden max-w-28 truncate text-sm text-ink md:block">{user?.username}</p>
+            <NavLink to="/naam" className="hidden max-w-28 truncate text-sm text-ink underline decoration-accent-400/70 underline-offset-4 md:block">
+              {user?.username}
+            </NavLink>
             <button type="button" onClick={logout} className="btn btn-ghost px-3">
               Uitloggen
             </button>

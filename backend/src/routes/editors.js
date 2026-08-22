@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { query } from "../db.js";
 import { requireAuth, requireCreator, requireUsername } from "../middleware/auth.js";
-import { toPublicUser } from "../publicUser.js";
+import { isOwnerEmail, toPublicUser } from "../publicUser.js";
 
 const router = Router();
 
@@ -131,6 +131,29 @@ router.patch("/:id/role", async (req, res) => {
   }
 
   res.json({ user: toPublicUser(updated.rows[0]) });
+});
+
+router.delete("/:id", async (req, res) => {
+  const id = parseId(req.params.id);
+  if (!id) return res.status(404).json({ error: "Deze gebruiker bestaat niet." });
+  if (id === req.user.id) {
+    return res.status(400).json({ error: "Je kunt jezelf niet van het bord halen." });
+  }
+
+  const target = await query("SELECT id, username, role, base_role, email FROM users WHERE id = $1", [id]);
+  if (target.rowCount === 0) {
+    return res.status(404).json({ error: "Deze gebruiker bestaat niet." });
+  }
+  const person = target.rows[0];
+  if (person.role === "creator" || person.base_role === "creator" || isOwnerEmail(person.email)) {
+    return res.status(400).json({ error: "De beheerder kan niet worden verwijderd." });
+  }
+
+  if (person.email) {
+    await query("DELETE FROM editor_invites WHERE email = $1", [person.email]);
+  }
+  await query("DELETE FROM users WHERE id = $1", [id]);
+  res.json({ ok: true });
 });
 
 export default router;
