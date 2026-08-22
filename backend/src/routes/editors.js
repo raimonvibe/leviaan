@@ -53,15 +53,20 @@ router.post("/invites", async (req, res) => {
   }
 
   const existingUser = await query("SELECT id, role, username FROM users WHERE email = $1", [email]);
+  if (email === String(process.env.CREATOR_EMAIL || "").trim().toLowerCase()) {
+    return res.status(400).json({ error: "Dit is het beheerdersaccount." });
+  }
+
   if (existingUser.rowCount > 0) {
     const user = existingUser.rows[0];
     if (user.role === "creator") {
       return res.status(400).json({ error: "Dit is het beheerdersaccount." });
     }
     if (user.role === "editor") {
-      return res.status(400).json({ error: "Deze persoon mag al plaatsen." });
+      return res.status(400).json({ error: "Deze persoon is al begeleider." });
     }
     await query("UPDATE users SET role = 'editor' WHERE id = $1", [user.id]);
+    await query("DELETE FROM editor_invites WHERE email = $1", [email]);
     return res.status(201).json({
       promoted: true,
       user: toPublicUser({ ...user, role: "editor" }),

@@ -73,16 +73,20 @@ export function PostCard({ post, canEdit, onDelete, onRestore, onAttend, compact
               <span>{post.attending ? "Je doet mee" : "Ik doe mee"}</span>
             </label>
             {Array.isArray(post.attendees) ? (
-              <div className="rounded-md bg-primary-50/80 px-3 py-2 text-sm dark:bg-primary-900/60">
-                <p className="text-primary-500">Wie doen mee ({post.attendeeCount ?? post.attendees.length})</p>
-                {post.attendees?.length ? (
-                  <ul className="mt-1 space-y-0.5">
+              <div className="rounded-md border border-primary-100 bg-primary-50/80 px-3 py-3 text-sm dark:border-primary-600 dark:bg-primary-900/60">
+                <p className="font-medium text-primary-700 dark:text-accent-200">
+                  Bewoners die meedoen ({post.attendeeCount ?? post.attendees.length})
+                </p>
+                {post.attendees.length ? (
+                  <ul className="mt-2 space-y-1">
                     {post.attendees.map((name) => (
-                      <li key={name}>{name}</li>
+                      <li key={name} className="font-medium">
+                        {name}
+                      </li>
                     ))}
                   </ul>
                 ) : (
-                  <p className="mt-1 text-primary-500">Nog niemand heeft zich opgegeven.</p>
+                  <p className="mt-2 text-primary-500">Nog niemand heeft zich opgegeven.</p>
                 )}
               </div>
             ) : null}

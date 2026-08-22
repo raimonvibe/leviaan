@@ -2,12 +2,6 @@ import { useEffect, useState } from "react";
 import { api, getErrorMessage } from "../api/client.js";
 import { useAuth } from "../contexts/AuthContext.jsx";
 
-function roleLabel(role) {
-  if (role === "creator") return "Beheerder";
-  if (role === "editor") return "Mag plaatsen";
-  return "Bewoner";
-}
-
 export function EditorsPage() {
   const { setRole } = useAuth();
   const [users, setUsers] = useState([]);
@@ -15,6 +9,9 @@ export function EditorsPage() {
   const [email, setEmail] = useState("");
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
+
+  const begeleiders = users.filter((user) => user.role === "editor");
+  const bewoners = users.filter((user) => user.role === "visitor");
 
   async function load() {
     const response = await api.get("/editors");
@@ -34,9 +31,9 @@ export function EditorsPage() {
       const response = await api.post("/editors/invites", { email });
       setEmail("");
       if (response.data.promoted) {
-        setNotice(`${response.data.user.username} mag nu activiteiten plaatsen.`);
+        setNotice(`${response.data.user.username} is nu begeleider en ziet wie er meedoet.`);
       } else {
-        setNotice("De uitnodiging staat klaar. Na het inloggen mag deze persoon plaatsen.");
+        setNotice("De uitnodiging staat klaar. Na het inloggen is deze persoon begeleider.");
       }
       await load();
     } catch (inviteError) {
@@ -46,13 +43,19 @@ export function EditorsPage() {
 
   async function changeRole(user, role) {
     setError("");
-    const label = role === "visitor" ? "bewoner" : "iemand die mag plaatsen";
-    if (role === "visitor" && !window.confirm(`${user.username || "Deze persoon"} wordt bewoner en kan daarna geen activiteiten meer plaatsen.`)) {
+    if (
+      role === "visitor" &&
+      !window.confirm(`${user.username || "Deze persoon"} wordt weer bewoner en ziet daarna niet meer wie er meedoet.`)
+    ) {
       return;
     }
     try {
       await api.patch(`/editors/${user.id}/role`, { role });
-      setNotice(`${user.username || "Deze persoon"} is nu ${label}.`);
+      setNotice(
+        role === "editor"
+          ? `${user.username || "Deze persoon"} is nu begeleider.`
+          : `${user.username || "Deze persoon"} is weer bewoner.`,
+      );
       await load();
     } catch (roleError) {
       setError(getErrorMessage(roleError));
@@ -81,16 +84,16 @@ export function EditorsPage() {
     <section className="space-y-8">
       <div>
         <p className="text-xs uppercase tracking-[0.2em] text-brick-600 dark:text-accent-300">Beheer</p>
-        <h1 className="page-title mt-1">Wie mag plaatsen</h1>
+        <h1 className="page-title mt-1">Begeleiders</h1>
         <p className="mt-2 max-w-2xl text-primary-600 dark:text-primary-200">
-          Hier bepaal je wie activiteiten op het bord mag zetten. Nodig iemand uit met een
-          e-mailadres. Dat adres blijft geheim; op het bord zien anderen alleen de naam.
+          Voeg een begeleider toe met een e-mailadres. Die persoon mag activiteiten plaatsen en ziet
+          de namen van bewoners die meedoen. Jij blijft beheerder en staat niet in hun lijst.
         </p>
       </div>
 
       <form onSubmit={invite} className="card rounded-lg p-4 sm:p-6">
         <label className="label" htmlFor="email">
-          E-mail van iemand die mag plaatsen
+          E-mail van een begeleider
         </label>
         <div className="flex flex-col gap-3 sm:flex-row">
           <input
@@ -99,40 +102,25 @@ export function EditorsPage() {
             className="input"
             value={email}
             onChange={(event) => setEmail(event.target.value)}
-            placeholder="verpleegkundige@example.com"
+            placeholder="begeleider@example.com"
             required
           />
           <button type="submit" className="btn btn-primary shrink-0">
-            Uitnodigen
+            Toevoegen
           </button>
         </div>
         {notice ? <p className="mt-3 text-sm text-primary-600 dark:text-accent-300">{notice}</p> : null}
         {error ? <p className="mt-3 text-sm text-brick-600">{error}</p> : null}
       </form>
 
-      <div className="card rounded-lg p-4 sm:p-6">
-        <h2 className="font-serif text-xl">Zelf meekijken</h2>
-        <p className="mt-2 text-sm text-primary-600 dark:text-primary-200">
-          Wil je zien wat een bewoner of iemand die mag plaatsen te zien krijgt? Kies hieronder.
-          Rechtsboven kun je altijd terug naar beheer.
-        </p>
-        <div className="mt-4 flex flex-wrap gap-2">
-          <button type="button" className="btn btn-secondary" onClick={() => testAs("editor")}>
-            Kijk als plaatser
-          </button>
-          <button type="button" className="btn btn-secondary" onClick={() => testAs("visitor")}>
-            Kijk als bewoner
-          </button>
-        </div>
-      </div>
-
       {invites.length > 0 ? (
-        <div className="card rounded-lg p-6">
-          <h2 className="font-serif text-xl">Open uitnodigingen</h2>
+        <div className="card rounded-lg p-4 sm:p-6">
+          <h2 className="font-serif text-xl">Nog niet ingelogd</h2>
+          <p className="mt-1 text-sm text-primary-500">Deze uitnodiging wacht tot iemand inlogt met Google.</p>
           <ul className="mt-4 divide-y divide-primary-100 dark:divide-primary-700">
             {invites.map((inviteItem) => (
               <li key={inviteItem.id} className="flex items-center justify-between gap-4 py-3">
-                <span>{inviteItem.email}</span>
+                <span className="break-all">{inviteItem.email}</span>
                 <button type="button" className="btn btn-ghost" onClick={() => revokeInvite(inviteItem.id)}>
                   Intrekken
                 </button>
@@ -142,33 +130,63 @@ export function EditorsPage() {
         </div>
       ) : null}
 
-      <div className="card overflow-hidden rounded-lg">
-        <div className="border-b border-primary-100 px-6 py-4 dark:border-primary-700">
-          <h2 className="font-serif text-xl">Mensen die al zijn ingelogd</h2>
+      <div>
+        <h2 className="font-serif text-xl">Begeleiders</h2>
+        <p className="mt-1 text-sm text-primary-500">Zij mogen plaatsen en zien wie er meedoet.</p>
+        {begeleiders.length === 0 ? (
+          <div className="card mt-4 rounded-lg p-5 text-primary-600 dark:text-primary-200">
+            Er is nog geen begeleider toegevoegd.
+          </div>
+        ) : (
+          <ul className="mt-4 grid gap-3 sm:grid-cols-2">
+            {begeleiders.map((user) => (
+              <li key={user.id} className="card rounded-lg p-4">
+                <p className="font-serif text-lg">{user.username || "Nog geen naam gekozen"}</p>
+                <p className="mt-1 text-sm text-primary-500">Begeleider · ziet wie meedoet</p>
+                <button type="button" className="btn btn-brick mt-4" onClick={() => changeRole(user, "visitor")}>
+                  Maak weer bewoner
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+
+      <div>
+        <h2 className="font-serif text-xl">Bewoners</h2>
+        <p className="mt-1 text-sm text-primary-500">Zij zien alleen hun eigen vinkje, geen namen.</p>
+        {bewoners.length === 0 ? (
+          <div className="card mt-4 rounded-lg p-5 text-primary-600 dark:text-primary-200">
+            Er is nog geen bewoner ingelogd.
+          </div>
+        ) : (
+          <ul className="card mt-4 divide-y divide-primary-100 overflow-hidden rounded-lg dark:divide-primary-700">
+            {bewoners.map((user) => (
+              <li key={user.id} className="flex flex-wrap items-center justify-between gap-3 px-4 py-3 sm:px-5">
+                <p className="font-medium">{user.username || "Nog geen naam gekozen"}</p>
+                <button type="button" className="btn btn-secondary" onClick={() => changeRole(user, "editor")}>
+                  Maak begeleider
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+
+      <div className="card rounded-lg p-4 sm:p-6">
+        <h2 className="font-serif text-xl">Zelf meekijken</h2>
+        <p className="mt-2 text-sm text-primary-600 dark:text-primary-200">
+          Kijk hoe het bord eruitziet voor een begeleider of bewoner. Rechtsboven kun je terug naar
+          beheer.
+        </p>
+        <div className="mt-4 flex flex-wrap gap-2">
+          <button type="button" className="btn btn-secondary" onClick={() => testAs("editor")}>
+            Kijk als begeleider
+          </button>
+          <button type="button" className="btn btn-secondary" onClick={() => testAs("visitor")}>
+            Kijk als bewoner
+          </button>
         </div>
-        <ul className="divide-y divide-primary-100 dark:divide-primary-700">
-          {users.map((user) => (
-            <li key={user.id} className="flex flex-wrap items-center justify-between gap-3 px-4 py-3 sm:px-6 sm:py-4">
-              <div>
-                <p className="font-semibold">{user.username || "Nog geen gebruikersnaam"}</p>
-                <p className="text-sm text-primary-500">{roleLabel(user.role)}</p>
-              </div>
-              {user.role === "creator" ? null : (
-                <div className="flex gap-2">
-                  {user.role === "editor" ? (
-                    <button type="button" className="btn btn-brick" onClick={() => changeRole(user, "visitor")}>
-                      Mag niet meer plaatsen
-                    </button>
-                  ) : (
-                    <button type="button" className="btn btn-primary" onClick={() => changeRole(user, "editor")}>
-                      Mag plaatsen
-                    </button>
-                  )}
-                </div>
-              )}
-            </li>
-          ))}
-        </ul>
       </div>
     </section>
   );

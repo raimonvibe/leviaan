@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useMemo, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { api } from "../api/client.js";
 import { TOKEN_KEY } from "../config.js";
 
@@ -38,6 +38,12 @@ export function AuthProvider({ children }) {
     };
   }, [token]);
 
+  const refreshUser = useCallback(async () => {
+    const response = await api.get("/auth/me");
+    setUser(response.data.user);
+    return response.data.user;
+  }, []);
+
   const value = useMemo(
     () => ({
       user,
@@ -47,6 +53,7 @@ export function AuthProvider({ children }) {
       isEditor: user?.role === "editor" || user?.role === "creator",
       isCreator: user?.role === "creator",
       isOwner: Boolean(user?.isOwner),
+      refreshUser,
       async setRole(role) {
         const response = await api.patch("/auth/role", { role });
         setUser(response.data.user);
@@ -70,7 +77,7 @@ export function AuthProvider({ children }) {
         setUser(null);
       },
     }),
-    [user, loading],
+    [user, loading, refreshUser],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

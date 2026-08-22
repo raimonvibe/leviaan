@@ -67,7 +67,7 @@ export function LoginPage() {
         <button
           type="button"
           onClick={toggleTheme}
-          className="btn btn-secondary shrink-0 px-3 text-primary-800"
+          className="btn shrink-0 border border-white/50 bg-white/10 px-3 text-white hover:bg-white/20"
         >
           {isDark ? "Licht" : "Donker"}
         </button>

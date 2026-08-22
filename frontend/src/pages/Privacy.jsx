@@ -54,9 +54,9 @@ export function PrivacyPage() {
             <h2 className="font-serif text-xl">Wat zien anderen?</h2>
             <p className="mt-2 leading-relaxed">
               Bewoners zien elkaars namen niet bij een activiteit. Je kunt wel zeggen of je meedoet.
-              Alleen de beheerder en redacteuren zien wie zich heeft opgegeven. Op het overzicht
-              kun je tikken op Redacteuren om te zien wie activiteiten mag plaatsen. De beheerder
-              staat niet in die lijst. Je e-mailadres blijft geheim.
+              Alleen de beheerder en begeleiders zien wie zich heeft opgegeven. Op het overzicht
+              kun je tikken op Begeleiders om hun namen te zien. De beheerder staat niet in die
+              lijst. Je e-mailadres blijft geheim.
             </p>
           </section>
 

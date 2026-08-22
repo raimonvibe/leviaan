@@ -7,7 +7,7 @@ import { useToast } from "../contexts/ToastContext.jsx";
 import { isUpcoming } from "../utils/dates.js";
 
 export function BoardPage() {
-  const { isEditor } = useAuth();
+  const { isEditor, refreshUser } = useAuth();
   const toast = useToast();
   const [searchParams] = useSearchParams();
   const [posts, setPosts] = useState([]);
@@ -16,12 +16,23 @@ export function BoardPage() {
   const [filter, setFilter] = useState("all");
 
   useEffect(() => {
-    api
-      .get("/posts")
-      .then((response) => setPosts(response.data.posts))
-      .catch((loadError) => setError(getErrorMessage(loadError, "Het bord kon niet worden geladen.")))
-      .finally(() => setLoading(false));
-  }, []);
+    let cancelled = false;
+    Promise.resolve(refreshUser?.())
+      .catch(() => null)
+      .then(() => api.get("/posts"))
+      .then((response) => {
+        if (!cancelled) setPosts(response.data.posts);
+      })
+      .catch((loadError) => {
+        if (!cancelled) setError(getErrorMessage(loadError, "Het bord kon niet worden geladen."));
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [refreshUser]);
 
   useEffect(() => {
     const id = searchParams.get("bericht");
@@ -76,7 +87,7 @@ export function BoardPage() {
           <h1 className="page-title">Wat speelt er?</h1>
           <p className="mt-1 max-w-xl text-sm text-primary-600 dark:text-primary-200">
             {isEditor
-              ? "Jij ziet wie er meedoet. Bewoners zien alleen hun eigen vinkje."
+              ? "Als begeleider zie je de namen van bewoners die meedoen."
               : "Zeg of je meedoet. Andere bewoners zien niet wie er nog meer komt."}
           </p>
         </div>
