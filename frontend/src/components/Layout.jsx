@@ -29,9 +29,14 @@ export function Layout() {
               Overzicht
             </NavLink>
             {isEditor ? (
-              <NavLink to="/berichten/nieuw" className={linkClass}>
-                Nieuw bericht
-              </NavLink>
+              <>
+                <NavLink to="/berichten/nieuw" className={linkClass}>
+                  Nieuw bericht
+                </NavLink>
+                <NavLink to="/prullenbak" className={linkClass}>
+                  Prullenbak
+                </NavLink>
+              </>
             ) : null}
             {isCreator ? (
               <NavLink to="/redactie" className={linkClass}>
@@ -67,9 +72,14 @@ export function Layout() {
             Overzicht
           </NavLink>
           {isEditor ? (
-            <NavLink to="/berichten/nieuw" className={linkClass}>
-              Nieuw
-            </NavLink>
+            <>
+              <NavLink to="/berichten/nieuw" className={linkClass}>
+                Nieuw
+              </NavLink>
+              <NavLink to="/prullenbak" className={linkClass}>
+                Prullenbak
+              </NavLink>
+            </>
           ) : null}
           {isCreator ? (
             <NavLink to="/redactie" className={linkClass}>

@@ -108,4 +108,9 @@ body {
   .page-title {
     @apply font-serif text-3xl font-bold text-ink tracking-tight;
   }
+
+  .sr-only {
+    @apply absolute w-px h-px p-0 -m-px overflow-hidden whitespace-nowrap border-0;
+    clip: rect(0, 0, 0, 0);
+  }
 }

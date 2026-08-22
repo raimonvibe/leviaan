@@ -33,8 +33,11 @@ CREATE INDEX IF NOT EXISTS idx_users_email ON users (email);
 CREATE INDEX IF NOT EXISTS idx_users_username ON users (username);
 CREATE INDEX IF NOT EXISTS idx_users_role ON users (role);
 CREATE INDEX IF NOT EXISTS idx_editor_invites_email ON editor_invites (email);
+ALTER TABLE posts ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMPTZ;
+
 CREATE INDEX IF NOT EXISTS idx_posts_activity_date ON posts (activity_date DESC);
 CREATE INDEX IF NOT EXISTS idx_posts_created_at ON posts (created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_posts_deleted_at ON posts (deleted_at);
 
 CREATE OR REPLACE FUNCTION update_updated_at_column()
 RETURNS TRIGGER AS $$

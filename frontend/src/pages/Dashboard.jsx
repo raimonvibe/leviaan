@@ -19,6 +19,7 @@ export function DashboardPage() {
     { label: "Totaal berichten", value: stats?.totalPosts ?? "—" },
     { label: "Komende activiteiten", value: stats?.upcomingPosts ?? "—" },
     { label: "Redacteuren", value: stats?.editors ?? "—" },
+    ...(isEditor ? [{ label: "In de prullenbak", value: stats?.trash ?? "—" }] : []),
   ];
 
   return (
@@ -29,7 +30,7 @@ export function DashboardPage() {
         Een kort overzicht van het bord. Geen taakstatussen — alleen wat er speelt.
       </p>
       {error ? <p className="mt-4 text-brick-600">{error}</p> : null}
-      <div className="mt-8 grid gap-4 sm:grid-cols-3">
+      <div className={`mt-8 grid gap-4 ${isEditor ? "sm:grid-cols-2 lg:grid-cols-4" : "sm:grid-cols-3"}`}>
         {cards.map((card) => (
           <article key={card.label} className="card rounded-lg p-6">
             <p className="text-sm uppercase tracking-wider text-primary-500 dark:text-primary-300">
@@ -44,9 +45,14 @@ export function DashboardPage() {
           Naar het bord
         </Link>
         {isEditor ? (
-          <Link to="/berichten/nieuw" className="btn btn-brick">
-            Activiteit plaatsen
-          </Link>
+          <>
+            <Link to="/berichten/nieuw" className="btn btn-brick">
+              Activiteit plaatsen
+            </Link>
+            <Link to="/prullenbak" className="btn btn-secondary">
+              Prullenbak
+            </Link>
+          </>
         ) : null}
         {isCreator ? (
           <Link to="/redactie" className="btn btn-secondary">

@@ -15,6 +15,7 @@ function mapPost(row) {
     imageData: row.image_data,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
+    deletedAt: row.deleted_at,
     author: toPublicUser({
       id: row.author_id,
       username: row.author_username,
@@ -68,6 +69,7 @@ const postSelect = `
     p.author_id,
     p.created_at,
     p.updated_at,
+    p.deleted_at,
     u.username AS author_username,
     u.role AS author_role
   FROM posts p
@@ -75,12 +77,21 @@ const postSelect = `
 `;
 
 router.get("/", requireAuth, requireUsername, async (_req, res) => {
-  const result = await query(`${postSelect} ORDER BY p.activity_date DESC, p.created_at DESC`);
+  const result = await query(
+    `${postSelect} WHERE p.deleted_at IS NULL ORDER BY p.activity_date DESC, p.created_at DESC`,
+  );
+  res.json({ posts: result.rows.map(mapPost) });
+});
+
+router.get("/trash", requireAuth, requireUsername, requireEditor, async (_req, res) => {
+  const result = await query(
+    `${postSelect} WHERE p.deleted_at IS NOT NULL ORDER BY p.deleted_at DESC`,
+  );
   res.json({ posts: result.rows.map(mapPost) });
 });
 
 router.get("/:id", requireAuth, requireUsername, async (req, res) => {
-  const result = await query(`${postSelect} WHERE p.id = $1`, [req.params.id]);
+  const result = await query(`${postSelect} WHERE p.id = $1 AND p.deleted_at IS NULL`, [req.params.id]);
   if (result.rowCount === 0) {
     return res.status(404).json({ error: "Dit bericht bestaat niet." });
   }
@@ -105,7 +116,10 @@ router.post("/", requireAuth, requireUsername, requireEditor, async (req, res) =
 });
 
 router.put("/:id", requireAuth, requireUsername, requireEditor, async (req, res) => {
-  const existing = await query("SELECT id, image_data FROM posts WHERE id = $1", [req.params.id]);
+  const existing = await query(
+    "SELECT id, image_data FROM posts WHERE id = $1 AND deleted_at IS NULL",
+    [req.params.id],
+  );
   if (existing.rowCount === 0) {
     return res.status(404).json({ error: "Dit bericht bestaat niet." });
   }
@@ -122,7 +136,7 @@ router.put("/:id", requireAuth, requireUsername, requireEditor, async (req, res)
   await query(
     `UPDATE posts
      SET title = $1, body = $2, activity_date = $3, image_data = $4
-     WHERE id = $5`,
+     WHERE id = $5 AND deleted_at IS NULL`,
     [parsed.title, parsed.body, parsed.activityDate, parsed.imageData, req.params.id],
   );
 
@@ -131,9 +145,41 @@ router.put("/:id", requireAuth, requireUsername, requireEditor, async (req, res)
 });
 
 router.delete("/:id", requireAuth, requireUsername, requireEditor, async (req, res) => {
-  const result = await query("DELETE FROM posts WHERE id = $1 RETURNING id", [req.params.id]);
+  const result = await query(
+    `UPDATE posts
+     SET deleted_at = CURRENT_TIMESTAMP
+     WHERE id = $1 AND deleted_at IS NULL
+     RETURNING id`,
+    [req.params.id],
+  );
   if (result.rowCount === 0) {
     return res.status(404).json({ error: "Dit bericht bestaat niet." });
+  }
+  res.json({ ok: true, undone: false });
+});
+
+router.post("/:id/restore", requireAuth, requireUsername, requireEditor, async (req, res) => {
+  const result = await query(
+    `UPDATE posts
+     SET deleted_at = NULL
+     WHERE id = $1 AND deleted_at IS NOT NULL
+     RETURNING id`,
+    [req.params.id],
+  );
+  if (result.rowCount === 0) {
+    return res.status(404).json({ error: "Dit bericht staat niet in de prullenbak." });
+  }
+  const restored = await query(`${postSelect} WHERE p.id = $1`, [req.params.id]);
+  res.json({ post: mapPost(restored.rows[0]) });
+});
+
+router.delete("/:id/permanent", requireAuth, requireUsername, requireEditor, async (req, res) => {
+  const result = await query(
+    "DELETE FROM posts WHERE id = $1 AND deleted_at IS NOT NULL RETURNING id",
+    [req.params.id],
+  );
+  if (result.rowCount === 0) {
+    return res.status(404).json({ error: "Dit bericht staat niet in de prullenbak." });
   }
   res.json({ ok: true });
 });

@@ -1,7 +1,9 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router";
 import { api, getErrorMessage } from "../api/client.js";
-import { toInputDate } from "../utils/dates.js";
+import { Lightbox } from "../components/Lightbox.jsx";
+import { useToast } from "../contexts/ToastContext.jsx";
+import { shiftInputDate, toInputDate } from "../utils/dates.js";
 import { compressImage } from "../utils/image.js";
 
 const emptyForm = {
@@ -14,11 +16,14 @@ const emptyForm = {
 export function PostFormPage() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const toast = useToast();
   const isEdit = Boolean(id);
   const [form, setForm] = useState(emptyForm);
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(isEdit);
+  const [dragging, setDragging] = useState(false);
+  const [previewOpen, setPreviewOpen] = useState(false);
 
   useEffect(() => {
     if (!isEdit) return;
@@ -41,8 +46,7 @@ export function PostFormPage() {
     setForm((current) => ({ ...current, [field]: value }));
   }
 
-  async function handleImage(event) {
-    const file = event.target.files?.[0];
+  async function setImageFile(file) {
     if (!file) return;
     try {
       const imageData = await compressImage(file);
@@ -64,8 +68,10 @@ export function PostFormPage() {
     try {
       if (isEdit) {
         await api.put(`/posts/${id}`, form);
+        toast.show({ message: "Bericht is bijgewerkt.", duration: 4000 });
       } else {
         await api.post("/posts", form);
+        toast.show({ message: "Bericht hangt op het bord.", duration: 4000 });
       }
       navigate("/bord");
     } catch (submitError) {
@@ -93,8 +99,10 @@ export function PostFormPage() {
             className="input"
             value={form.title}
             onChange={(event) => updateField("title", event.target.value)}
+            maxLength={160}
             required
           />
+          <p className="mt-1 text-right text-xs text-primary-500">{form.title.length}/160</p>
         </div>
         <div>
           <label className="label" htmlFor="activityDate">
@@ -108,6 +116,17 @@ export function PostFormPage() {
             onChange={(event) => updateField("activityDate", event.target.value)}
             required
           />
+          <div className="mt-2 flex flex-wrap gap-2">
+            <button type="button" className="btn btn-secondary" onClick={() => updateField("activityDate", shiftInputDate(0))}>
+              Vandaag
+            </button>
+            <button type="button" className="btn btn-secondary" onClick={() => updateField("activityDate", shiftInputDate(1))}>
+              Morgen
+            </button>
+            <button type="button" className="btn btn-secondary" onClick={() => updateField("activityDate", shiftInputDate(7))}>
+              Over een week
+            </button>
+          </div>
         </div>
         <div>
           <label className="label" htmlFor="body">
@@ -118,16 +137,54 @@ export function PostFormPage() {
             className="input min-h-36"
             value={form.body}
             onChange={(event) => updateField("body", event.target.value)}
+            maxLength={4000}
             required
           />
+          <p className="mt-1 text-right text-xs text-primary-500">{form.body.length}/4000</p>
         </div>
         <div>
-          <label className="label" htmlFor="image">
-            Afbeelding
+          <p className="label">Afbeelding</p>
+          <label
+            htmlFor="image"
+            className={`block cursor-pointer rounded-lg border-2 border-dashed p-6 text-center transition-colors ${
+              dragging
+                ? "border-accent-400 bg-accent-50 dark:bg-primary-700"
+                : "border-primary-200 hover:border-primary-400 dark:border-primary-600"
+            }`}
+            onDragOver={(event) => {
+              event.preventDefault();
+              setDragging(true);
+            }}
+            onDragLeave={() => setDragging(false)}
+            onDrop={(event) => {
+              event.preventDefault();
+              setDragging(false);
+              setImageFile(event.dataTransfer.files?.[0]);
+            }}
+          >
+            <span className="font-medium">Sleep een foto hierheen of klik om te kiezen</span>
+            <input
+              id="image"
+              type="file"
+              accept="image/*"
+              className="sr-only"
+              onChange={(event) => setImageFile(event.target.files?.[0])}
+            />
           </label>
-          <input id="image" type="file" accept="image/*" onChange={handleImage} className="block w-full text-sm" />
           {form.imageData ? (
-            <img src={form.imageData} alt="" className="mt-4 max-h-64 rounded-md object-cover" />
+            <div className="mt-4 space-y-3">
+              <button type="button" className="block w-full" onClick={() => setPreviewOpen(true)}>
+                <img
+                  src={form.imageData}
+                  alt="Voorvertoning van de gekozen foto"
+                  className="max-h-[28rem] w-full rounded-md object-contain bg-primary-50 dark:bg-primary-900"
+                />
+              </button>
+              <p className="text-sm text-primary-500">Klik op de foto om die groter te bekijken.</p>
+              <button type="button" className="btn btn-ghost" onClick={() => updateField("imageData", "")}>
+                Andere foto kiezen
+              </button>
+            </div>
           ) : null}
         </div>
         {error ? <p className="text-sm text-brick-600">{error}</p> : null}
@@ -140,6 +197,9 @@ export function PostFormPage() {
           </Link>
         </div>
       </form>
+      {previewOpen ? (
+        <Lightbox src={form.imageData} alt="Voorvertoning" onClose={() => setPreviewOpen(false)} />
+      ) : null}
     </section>
   );
 }
