@@ -6,6 +6,7 @@ import { DashboardPage } from "./pages/Dashboard.jsx";
 import { EditorsPage } from "./pages/Editors.jsx";
 import { LoginPage } from "./pages/Login.jsx";
 import { PostFormPage } from "./pages/PostForm.jsx";
+import { GoogleAccountPage } from "./pages/GoogleAccount.jsx";
 import { PrivacyPage } from "./pages/Privacy.jsx";
 import { PostersPage } from "./pages/Posters.jsx";
 import { TrashPage } from "./pages/Trash.jsx";
@@ -17,6 +18,7 @@ export function App() {
       <Route path="/inloggen" element={<LoginPage />} />
       <Route path="/welkom" element={<UsernameSetupPage />} />
       <Route path="/privacy" element={<PrivacyPage />} />
+      <Route path="/google-account" element={<GoogleAccountPage />} />
       <Route element={<ProtectedRoute />}>
         <Route element={<Layout />}>
           <Route path="/" element={<BoardPage />} />

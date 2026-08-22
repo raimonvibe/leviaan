@@ -53,7 +53,7 @@ function GoogleSignIn({ onAccessToken, onError }) {
       type="button"
       onClick={() => login()}
       disabled={busy}
-      className="btn w-full border border-primary-200 bg-white text-primary-800 hover:bg-campus dark:border-primary-600 dark:bg-primary-900 dark:text-paper dark:hover:bg-primary-800"
+      className="btn w-full border border-primary-200 bg-white text-primary-800 hover:bg-campus dark:border-white/40 dark:bg-white/10 dark:text-white dark:hover:bg-white/20"
     >
       <GoogleMark />
       {busy ? "Even geduld…" : "Doorgaan met Google"}
@@ -99,7 +99,11 @@ export function LoginPage() {
         <div className="card order-1 w-full min-w-0 rounded-lg p-4 text-ink sm:p-6 lg:order-2 lg:p-7">
           <h1 className="font-serif text-2xl sm:text-3xl">Inloggen</h1>
           <p className="mt-1 text-sm text-primary-600 dark:text-primary-200">
-            Gebruik je Google-account. Dat is genoeg om binnen te komen.
+            Gebruik je Google-account. Dat is genoeg om binnen te komen. Nog geen account?{" "}
+            <Link to="/google-account" className="underline decoration-accent-400 underline-offset-4">
+              Zo maak je er een
+            </Link>
+            .
           </p>
           <div className="mt-5">
             {!GOOGLE_CLIENT_ID ? (
