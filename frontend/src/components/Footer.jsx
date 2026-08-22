@@ -2,7 +2,7 @@ import { Link } from "react-router";
 
 const links = [
   { href: "https://www.leviaan.nl", label: "leviaan.nl", external: true },
-  { href: "https://github.com/raimonvibe/leviaan", label: "Broncode op GitHub", external: true },
+  { href: "https://github.com/raimonvibe/leviaan", label: "Bekijk de code!", external: true },
   { to: "/google-account", label: "Hoe maak ik een Google-account?" },
   { to: "/privacy", label: "Privacy" },
 ];
@@ -12,8 +12,8 @@ export function Footer({ light = false }) {
     ? "border-white/15 text-primary-100"
     : "border-primary-100/80 text-primary-600 dark:border-primary-700 dark:text-primary-300";
   const linkClass = light
-    ? "inline-flex min-h-12 w-full items-center rounded-md border border-white/20 px-3 py-2 text-sm underline decoration-accent-400/70 underline-offset-4 hover:bg-white/10 hover:text-white sm:w-auto"
-    : "inline-flex min-h-12 w-full items-center rounded-md border border-primary-200 px-3 py-2 text-sm underline decoration-accent-400 underline-offset-4 hover:bg-primary-50 hover:text-primary-800 dark:border-primary-600 dark:hover:bg-primary-800 dark:hover:text-accent-200 sm:w-auto";
+    ? "inline-flex min-h-12 w-full items-center rounded-md border border-white/20 px-3 py-2 text-sm underline decoration-accent-400/70 underline-offset-4 hover:bg-white/10 hover:text-white"
+    : "inline-flex min-h-12 w-full items-center rounded-md border border-primary-200 px-3 py-2 text-sm underline decoration-accent-400 underline-offset-4 hover:bg-primary-50 hover:text-primary-800 dark:border-primary-600 dark:hover:bg-primary-800 dark:hover:text-accent-200";
 
   return (
     <footer className={`mt-auto border-t ${tone}`}>
@@ -25,7 +25,7 @@ export function Footer({ light = false }) {
           </p>
         </div>
         <nav
-          className="grid grid-cols-1 gap-2 sm:grid-cols-2 sm:gap-3 lg:flex lg:max-w-xl lg:flex-wrap lg:justify-end"
+          className="grid w-full grid-cols-1 gap-2 sm:grid-cols-2 sm:gap-3 lg:max-w-2xl"
           aria-label="Links onderaan"
         >
           {links.map((item) =>

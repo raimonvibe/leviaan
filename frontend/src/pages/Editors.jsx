@@ -41,27 +41,6 @@ export function EditorsPage() {
     }
   }
 
-  async function changeRole(user, role) {
-    setError("");
-    if (
-      role === "visitor" &&
-      !window.confirm(`${user.username || "Deze persoon"} wordt weer bewoner en ziet daarna niet meer wie er meedoet.`)
-    ) {
-      return;
-    }
-    try {
-      await api.patch(`/editors/${user.id}/role`, { role });
-      setNotice(
-        role === "editor"
-          ? `${user.username || "Deze persoon"} is nu begeleider.`
-          : `${user.username || "Deze persoon"} is weer bewoner.`,
-      );
-      await load();
-    } catch (roleError) {
-      setError(getErrorMessage(roleError));
-    }
-  }
-
   async function testAs(role) {
     setError("");
     try {
@@ -88,7 +67,7 @@ export function EditorsPage() {
         <p className="mt-2 max-w-2xl text-primary-600 dark:text-primary-200">
           Voeg een begeleider toe met een e-mailadres. Die persoon mag activiteiten plaatsen en ziet
           de namen van bewoners die meedoen. Jij blijft beheerder en staat niet in hun lijst. Een
-          begeleider kan zelf even als bewoner meekijken en daarna terug.
+          begeleider blijft begeleider en kan zelf even als bewoner meekijken.
         </p>
       </div>
 
@@ -144,9 +123,6 @@ export function EditorsPage() {
               <li key={user.id} className="card rounded-lg p-4">
                 <p className="font-serif text-lg">{user.username || "Nog geen naam gekozen"}</p>
                 <p className="mt-1 text-sm text-primary-500">Begeleider · ziet wie meedoet</p>
-                <button type="button" className="btn btn-brick mt-4" onClick={() => changeRole(user, "visitor")}>
-                  Maak weer bewoner
-                </button>
               </li>
             ))}
           </ul>

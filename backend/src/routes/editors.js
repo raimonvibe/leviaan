@@ -108,12 +108,15 @@ router.patch("/:id/role", async (req, res) => {
 
   const id = parseId(req.params.id);
   if (!id) return res.status(404).json({ error: "Deze gebruiker bestaat niet." });
-  const target = await query("SELECT id, username, role, email FROM users WHERE id = $1", [id]);
+  const target = await query("SELECT id, username, role, base_role, email FROM users WHERE id = $1", [id]);
   if (target.rowCount === 0) {
     return res.status(404).json({ error: "Deze gebruiker bestaat niet." });
   }
-  if (target.rows[0].role === "creator") {
+  if (target.rows[0].role === "creator" || target.rows[0].base_role === "creator") {
     return res.status(400).json({ error: "De beheerder kan niet worden gewijzigd." });
+  }
+  if (role === "visitor" && (target.rows[0].role === "editor" || target.rows[0].base_role === "editor")) {
+    return res.status(400).json({ error: "Een begeleider blijft begeleider." });
   }
   if (id === req.user.id && role !== "creator") {
     return res.status(400).json({ error: "Gebruik ‘Test als’ om jezelf tijdelijk te wisselen." });

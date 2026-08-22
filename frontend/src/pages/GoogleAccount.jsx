@@ -74,9 +74,11 @@ export function GoogleAccountPage() {
           <section className="card rounded-lg p-5">
             <h2 className="font-serif text-xl">Daarna op dit bord</h2>
             <p className="mt-2 leading-relaxed">
-              De eerste keer kies je een naam die huisgenoten mogen zien. Je e-mailadres blijft
-              geheim. Bewoners zien bij een activiteit alleen hun eigen vinkje, geen namen van
-              anderen.
+              De eerste keer kies je een naam voor dit bord. Je e-mailadres blijft geheim.
+            </p>
+            <p className="mt-2 leading-relaxed">
+              Bewoners krijgen elkaars namen niet te zien. Bij een activiteit zie je alleen je eigen
+              vinkje.
             </p>
           </section>
 
