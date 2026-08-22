@@ -10,10 +10,10 @@ const links = [
 export function Footer({ light = false }) {
   const tone = light
     ? "border-white/15 text-primary-100"
-    : "border-primary-100/80 text-primary-600 dark:border-primary-700 dark:text-primary-300";
+    : "border-primary-200 text-primary-600 dark:border-primary-400 dark:text-primary-200";
   const linkClass = light
     ? "inline-flex min-h-12 w-full items-center rounded-md border border-white/20 px-3 py-2 text-sm underline decoration-accent-400/70 underline-offset-4 hover:bg-white/10 hover:text-white"
-    : "inline-flex min-h-12 w-full items-center rounded-md border border-primary-200 px-3 py-2 text-sm underline decoration-accent-400 underline-offset-4 hover:bg-primary-50 hover:text-primary-800 dark:border-primary-600 dark:hover:bg-primary-800 dark:hover:text-accent-200";
+    : "inline-flex min-h-12 w-full items-center rounded-md border border-primary-200 px-3 py-2 text-sm underline decoration-accent-400 underline-offset-4 hover:bg-primary-50 hover:text-primary-800 dark:border-primary-400 dark:hover:bg-primary-700 dark:hover:text-accent-200";
 
   return (
     <footer className={`mt-auto border-t ${tone}`}>

@@ -92,11 +92,11 @@ export function TrashPage() {
           </button>
         ) : null}
       </div>
-      {error ? <p className="mt-6 text-brick-600">{error}</p> : null}
-      {loading ? <p className="mt-6 text-primary-500">Prullenbak wordt geopend…</p> : null}
+      {error ? <p className="mt-6 note-error">{error}</p> : null}
+      {loading ? <p className="muted mt-6">Prullenbak wordt geopend…</p> : null}
       {!loading && posts.length === 0 ? (
         <div className="card mt-6 rounded-lg p-10 text-center">
-          <h2 className="font-serif text-2xl">Prullenbak is leeg</h2>
+          <h2 className="font-serif text-2xl text-ink">Prullenbak is leeg</h2>
           <p className="mt-2 text-primary-600 dark:text-primary-200">Er staat hier niets meer.</p>
         </div>
       ) : null}

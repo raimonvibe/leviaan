@@ -23,8 +23,8 @@ export function PostersPage() {
         naam is zichtbaar.
       </p>
 
-      {error ? <p className="mt-4 text-brick-600">{error}</p> : null}
-      {loading ? <p className="mt-4 text-primary-500">Namen worden opgehaald…</p> : null}
+      {error ? <p className="mt-4 note-error">{error}</p> : null}
+      {loading ? <p className="muted mt-4">Namen worden opgehaald…</p> : null}
 
       {!loading && names.length === 0 ? (
         <div className="card mt-6 rounded-lg p-6">
@@ -39,7 +39,7 @@ export function PostersPage() {
               <p className="text-xs uppercase tracking-[0.16em] text-brick-600 dark:text-accent-300">
                 Begeleider
               </p>
-              <p className="mt-2 font-serif text-xl">{name}</p>
+              <p className="mt-2 font-serif text-xl text-ink">{name}</p>
             </li>
           ))}
         </ul>

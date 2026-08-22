@@ -10,7 +10,7 @@ export function GoogleAccountPage() {
 
   return (
     <div className="flex min-h-dvh flex-col">
-      <header className="border-b border-primary-100/70 bg-paper/95 dark:border-primary-700 dark:bg-primary-900/90">
+      <header className="border-b border-primary-200 bg-paper/95 dark:border-primary-400 dark:bg-primary-900/90">
         <div className="mx-auto flex max-w-3xl items-center justify-between gap-3 px-4 py-3 pt-[max(0.75rem,env(safe-area-inset-top))]">
           <Link to="/" aria-label="Naar home">
             <Logo />
@@ -74,11 +74,8 @@ export function GoogleAccountPage() {
           <section className="card rounded-lg p-5">
             <h2 className="font-serif text-xl">Daarna op dit bord</h2>
             <p className="mt-2 leading-relaxed">
-              De eerste keer kies je een naam voor dit bord. Je e-mailadres blijft geheim.
-            </p>
-            <p className="mt-2 leading-relaxed">
-              Bewoners krijgen elkaars namen niet te zien. Bij een activiteit zie je alleen je eigen
-              vinkje.
+              De eerste keer kies je een naam voor dit bord. Die naam zien bewoners en begeleiders.
+              Je e-mailadres blijft geheim.
             </p>
           </section>
 

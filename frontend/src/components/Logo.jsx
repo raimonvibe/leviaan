@@ -10,7 +10,7 @@ export function Logo({ compact = false }) {
       />
       {compact ? null : (
         <div className="min-w-0 leading-tight max-[380px]:hidden">
-          <p className="truncate font-serif text-base font-semibold sm:text-lg">Leviaan Campus</p>
+          <p className="truncate font-serif text-base font-semibold text-ink sm:text-lg">Leviaan Campus</p>
           <p className="hidden text-[0.65rem] uppercase tracking-[0.16em] text-primary-500 sm:block dark:text-accent-300">
             Activiteitenbord
           </p>

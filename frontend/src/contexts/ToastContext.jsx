@@ -26,7 +26,7 @@ export function ToastProvider({ children }) {
     <ToastContext.Provider value={value}>
       {children}
       {toast ? (
-        <div className="fixed bottom-[max(1rem,env(safe-area-inset-bottom))] left-1/2 z-50 w-[min(36rem,calc(100%-1.5rem))] -translate-x-1/2 rounded-lg bg-primary-600 px-4 py-3 text-white dark:bg-primary-800">
+        <div className="fixed bottom-[max(1rem,env(safe-area-inset-bottom))] left-1/2 z-50 w-[min(36rem,calc(100%-1.5rem))] -translate-x-1/2 rounded-lg bg-primary-600 px-4 py-3 text-white dark:bg-primary-700 dark:ring-1 dark:ring-primary-400">
           <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
             <p>{toast.message}</p>
             <div className="flex shrink-0 gap-2">

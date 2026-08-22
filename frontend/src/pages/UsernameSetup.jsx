@@ -53,8 +53,8 @@ export function UsernameSetupPage() {
             maxLength={24}
             required
           />
-          <p className="mt-2 text-sm text-primary-500">3 tot 24 tekens. Letters, cijfers of _ zijn goed.</p>
-          {error ? <p className="mt-3 text-sm text-brick-600">{error}</p> : null}
+          <p className="muted mt-2 text-sm">3 tot 24 tekens. Letters, cijfers of _ zijn goed.</p>
+          {error ? <p className="note-error mt-3 text-sm">{error}</p> : null}
           <button type="submit" className="btn btn-primary mt-6" disabled={saving}>
             {saving ? "Opslaan…" : "Naar het bord"}
           </button>

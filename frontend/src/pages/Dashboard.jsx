@@ -19,12 +19,8 @@ export function DashboardPage() {
     { label: "Activiteiten", value: stats?.totalPosts ?? "—" },
     { label: "Nog te doen", value: stats?.upcomingPosts ?? "—" },
     { label: "Begeleiders", value: stats?.editors ?? "—", to: "/begeleiders", hint: "Tik om namen te zien" },
-    ...(isEditor
-      ? [
-          { label: "Bewoners", value: stats?.visitors ?? "—", to: "/bewoners", hint: "Tik om namen te zien" },
-          { label: "In de prullenbak", value: stats?.trash ?? "—", to: "/prullenbak" },
-        ]
-      : []),
+    { label: "Bewoners", value: stats?.visitors ?? "—", to: "/bewoners", hint: "Tik om namen te zien" },
+    ...(isEditor ? [{ label: "In de prullenbak", value: stats?.trash ?? "—", to: "/prullenbak" }] : []),
   ];
 
   return (
@@ -33,14 +29,14 @@ export function DashboardPage() {
       <p className="mt-2 max-w-xl text-sm text-primary-600 dark:text-primary-200">
         Een korte stand van het bord. Niks ingewikkelds, alleen tellingen.
       </p>
-      {error ? <p className="mt-4 text-brick-600">{error}</p> : null}
-      <div className={`mt-8 grid gap-4 ${isEditor ? "sm:grid-cols-2 lg:grid-cols-3" : "sm:grid-cols-3"}`}>
+      {error ? <p className="mt-4 note-error">{error}</p> : null}
+      <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {cards.map((card) => {
           const inner = (
             <>
-              <p className="text-xs text-primary-500 dark:text-primary-300">{card.label}</p>
-              <p className="mt-2 font-serif text-3xl">{card.value}</p>
-              {card.hint ? <p className="mt-2 text-sm text-primary-500">{card.hint}</p> : null}
+              <p className="muted text-xs">{card.label}</p>
+              <p className="mt-2 font-serif text-3xl text-ink">{card.value}</p>
+              {card.hint ? <p className="muted mt-2 text-sm">{card.hint}</p> : null}
             </>
           );
           return card.to ? (

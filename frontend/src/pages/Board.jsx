@@ -90,7 +90,7 @@ export function BoardPage() {
               ? "Jij ziet alles: wie meedoet, de namen van bewoners en wat er speelt."
               : isEditor
                 ? "Als begeleider zie je de namen van bewoners die meedoen."
-                : "Zeg of je meedoet. Andere bewoners zien niet wie er nog meer komt."}
+                : "Zeg of je meedoet. Je ziet de namen van huisgenoten die ook komen."}
           </p>
         </div>
         {isEditor ? (
@@ -119,11 +119,11 @@ export function BoardPage() {
         </div>
       </div>
 
-      {error ? <p className="mb-4 text-brick-600">{error}</p> : null}
-      {loading ? <p className="text-primary-500">Het bord wordt geladen…</p> : null}
+      {error ? <p className="mb-4 note-error">{error}</p> : null}
+      {loading ? <p className="muted">Het bord wordt geladen…</p> : null}
       {!loading && visible.length === 0 ? (
         <div className="card rounded-lg p-8 text-center">
-          <h2 className="font-serif text-xl">
+          <h2 className="font-serif text-xl text-ink">
             {posts.length === 0
               ? "Er hangt nog niets op het bord"
               : filter === "upcoming"

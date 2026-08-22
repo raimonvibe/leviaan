@@ -140,6 +140,14 @@ body {
     @apply font-serif text-2xl sm:text-3xl font-semibold text-ink tracking-tight;
   }
 
+  .muted {
+    @apply text-primary-600 dark:text-primary-200;
+  }
+
+  .note-error {
+    @apply text-brick-600 dark:text-brick-100;
+  }
+
   .sr-only {
     position: absolute;
     width: 1px;

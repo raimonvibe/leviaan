@@ -19,12 +19,11 @@ export function ResidentsPage() {
     <section className="mx-auto max-w-2xl">
       <h1 className="page-title">Bewoners</h1>
       <p className="mt-2 text-primary-600 dark:text-primary-200">
-        Dit zijn de bewoners van het huis. Alleen hun naam is zichtbaar, geen e-mailadres. Bewoners
-        zelf zien elkaars namen niet.
+        Dit zijn de bewoners van het huis. Alleen hun naam is zichtbaar, geen e-mailadres.
       </p>
 
-      {error ? <p className="mt-4 text-brick-600">{error}</p> : null}
-      {loading ? <p className="mt-4 text-primary-500">Namen worden opgehaald…</p> : null}
+      {error ? <p className="mt-4 note-error">{error}</p> : null}
+      {loading ? <p className="muted mt-4">Namen worden opgehaald…</p> : null}
 
       {!loading && names.length === 0 ? (
         <div className="card mt-6 rounded-lg p-6">
@@ -39,7 +38,7 @@ export function ResidentsPage() {
               <p className="text-xs uppercase tracking-[0.16em] text-brick-600 dark:text-accent-300">
                 Bewoner
               </p>
-              <p className="mt-2 font-serif text-xl">{name}</p>
+              <p className="mt-2 font-serif text-xl text-ink">{name}</p>
             </li>
           ))}
         </ul>

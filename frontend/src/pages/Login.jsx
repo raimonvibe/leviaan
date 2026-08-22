@@ -107,7 +107,7 @@ export function LoginPage() {
           </p>
           <div className="mt-5">
             {!GOOGLE_CLIENT_ID ? (
-              <p className="text-sm text-brick-600">Zet VITE_GOOGLE_CLIENT_ID in frontend/.env.</p>
+              <p className="text-sm text-brick-600 dark:text-brick-100">Zet VITE_GOOGLE_CLIENT_ID in frontend/.env.</p>
             ) : (
               <GoogleSignIn
                 onAccessToken={async (accessToken) => {
@@ -118,7 +118,7 @@ export function LoginPage() {
               />
             )}
           </div>
-          {error ? <p className="mt-4 text-sm text-brick-600">{error}</p> : null}
+          {error ? <p className="mt-4 text-sm text-brick-600 dark:text-brick-100">{error}</p> : null}
           <p className="mt-5 text-sm text-primary-600 dark:text-primary-300">
             Door in te loggen ga je akkoord met hoe we met je gegevens omgaan. Lees de{" "}
             <Link to="/privacy" className="underline decoration-accent-400 underline-offset-4">

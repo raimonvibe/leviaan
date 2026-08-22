@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { query } from "../db.js";
 import { requireAuth, requireEditor, requireUsername } from "../middleware/auth.js";
-import { isEditorRole, toPublicUser } from "../publicUser.js";
+import { toPublicUser } from "../publicUser.js";
 
 const router = Router();
 const MAX_IMAGE_CHARS = 1_800_000;
@@ -51,33 +51,27 @@ async function withAttendance(rows, user) {
   const countMap = new Map(counts.rows.map((row) => [row.post_id, row.count]));
 
   let namesByPost = new Map();
-  if (isEditorRole(user.role)) {
-    const names = await query(
-      `SELECT a.post_id, u.username
-       FROM attendances a
-       JOIN users u ON u.id = a.user_id
-       WHERE a.post_id = ANY($1::int[]) AND u.username IS NOT NULL
-       ORDER BY lower(u.username)`,
-      [ids],
-    );
-    for (const row of names.rows) {
-      const list = namesByPost.get(row.post_id) || [];
-      list.push(row.username);
-      namesByPost.set(row.post_id, list);
-    }
+  const names = await query(
+    `SELECT a.post_id, u.username
+     FROM attendances a
+     JOIN users u ON u.id = a.user_id
+     WHERE a.post_id = ANY($1::int[]) AND u.username IS NOT NULL
+     ORDER BY lower(u.username)`,
+    [ids],
+  );
+  for (const row of names.rows) {
+    const list = namesByPost.get(row.post_id) || [];
+    list.push(row.username);
+    namesByPost.set(row.post_id, list);
   }
 
-  return rows.map((row) => {
-    const post = mapPost(row, {
+  return rows.map((row) =>
+    mapPost(row, {
       attending: mineSet.has(row.id),
-      attendeeCount: isEditorRole(user.role) ? countMap.get(row.id) || 0 : undefined,
-      attendees: isEditorRole(user.role) ? namesByPost.get(row.id) || [] : undefined,
-    });
-    if (!isEditorRole(user.role)) {
-      post.author = null;
-    }
-    return post;
-  });
+      attendeeCount: countMap.get(row.id) || 0,
+      attendees: namesByPost.get(row.id) || [],
+    }),
+  );
 }
 
 function validatePost({ title, body, activityDate, activityEndDate, imageData, requireImage }) {

@@ -8,7 +8,7 @@ export function PrivacyPage() {
 
   return (
     <div className="flex min-h-dvh flex-col">
-      <header className="border-b border-primary-100/70 bg-paper/95 dark:border-primary-700 dark:bg-primary-900/90">
+      <header className="border-b border-primary-200 bg-paper/95 dark:border-primary-400 dark:bg-primary-900/90">
         <div className="mx-auto flex max-w-3xl items-center justify-between gap-3 px-4 py-3 pt-[max(0.75rem,env(safe-area-inset-top))]">
           <Link to="/" aria-label="Naar home">
             <Logo />
@@ -53,10 +53,9 @@ export function PrivacyPage() {
           <section className="card rounded-lg p-5">
             <h2 className="font-serif text-xl">Wat zien anderen?</h2>
             <p className="mt-2 leading-relaxed">
-              Bewoners zien elkaars namen niet bij een activiteit. Je kunt wel zeggen of je meedoet.
-              Alleen de beheerder en begeleiders zien wie zich heeft opgegeven. Op het overzicht
-              kun je tikken op Begeleiders om hun namen te zien. De beheerder staat niet in die
-              lijst. Je e-mailadres blijft geheim.
+              Bewoners en begeleiders zien elkaars namen op het bord, bijvoorbeeld wie meedoet. Op
+              het overzicht kun je tikken op Begeleiders of Bewoners om de namen te zien. Je
+              e-mailadres blijft geheim.
             </p>
           </section>
 

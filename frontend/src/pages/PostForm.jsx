@@ -85,7 +85,7 @@ export function PostFormPage() {
   }
 
   if (loading) {
-      return <p className="text-primary-500 dark:text-primary-300">De activiteit wordt geladen…</p>;
+      return <p className="muted">De activiteit wordt geladen…</p>;
   }
 
   return (
@@ -104,7 +104,7 @@ export function PostFormPage() {
             maxLength={160}
             required
           />
-          <p className="mt-1 text-right text-xs text-primary-500 dark:text-primary-300">{form.title.length}/160</p>
+          <p className="muted mt-1 text-right text-xs">{form.title.length}/160</p>
         </div>
         <div>
           <DateRangePicker
@@ -127,7 +127,7 @@ export function PostFormPage() {
             maxLength={4000}
             required
           />
-          <p className="mt-1 text-right text-xs text-primary-500 dark:text-primary-300">{form.body.length}/4000</p>
+          <p className="muted mt-1 text-right text-xs">{form.body.length}/4000</p>
         </div>
         <div>
           <p className="label">Foto</p>
@@ -173,7 +173,7 @@ export function PostFormPage() {
             </div>
           ) : null}
         </div>
-        {error ? <p className="text-sm text-brick-600 dark:text-brick-100">{error}</p> : null}
+        {error ? <p className="note-error text-sm">{error}</p> : null}
         <div className="flex flex-col-reverse gap-2 sm:flex-row">
           <Link to="/bord" className="btn btn-secondary w-full sm:w-auto">
             Annuleren

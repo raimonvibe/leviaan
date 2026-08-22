@@ -26,12 +26,12 @@ export function App() {
           <Route path="/bord" element={<BoardPage />} />
           <Route path="/overzicht" element={<DashboardPage />} />
           <Route path="/begeleiders" element={<PostersPage />} />
+          <Route path="/bewoners" element={<ResidentsPage />} />
           <Route path="/redacteuren" element={<Navigate to="/begeleiders" replace />} />
           <Route element={<ProtectedRoute editor />}>
             <Route path="/berichten/nieuw" element={<PostFormPage />} />
             <Route path="/berichten/:id/bewerken" element={<PostFormPage />} />
             <Route path="/prullenbak" element={<TrashPage />} />
-            <Route path="/bewoners" element={<ResidentsPage />} />
           </Route>
           <Route element={<ProtectedRoute creator />}>
             <Route path="/redactie" element={<EditorsPage />} />

@@ -34,7 +34,7 @@ export function PostCard({ post, canEdit, onDelete, onRestore, onAttend, compact
             </span>
           </button>
         ) : (
-          <div className="grid h-full place-items-center font-serif text-primary-400">Geen foto</div>
+          <div className="grid h-full place-items-center font-serif text-primary-400 dark:text-primary-300">Geen foto</div>
         )}
         <div className="pointer-events-none absolute left-3 top-3 flex h-14 w-14 flex-col items-center justify-center rounded-md bg-paper/95 text-primary-700 dark:bg-primary-800 dark:text-accent-200">
           <span className="font-serif text-xl leading-none">{stamp.day}</span>
@@ -51,15 +51,15 @@ export function PostCard({ post, canEdit, onDelete, onRestore, onAttend, compact
       <div className="space-y-2.5 p-4 sm:p-5">
         <div>
           <p className="text-sm text-brick-600 dark:text-accent-300">{range}</p>
-          <h2 className="font-serif text-xl leading-tight sm:text-2xl">{post.title}</h2>
+          <h2 className="font-serif text-xl leading-tight text-ink sm:text-2xl">{post.title}</h2>
         </div>
         {compact ? null : (
           <p className="whitespace-pre-wrap text-sm leading-relaxed text-primary-700 sm:text-base dark:text-primary-100">
             {post.body}
           </p>
         )}
-        {canEdit && post.author?.username ? (
-          <p className="text-xs text-primary-500 sm:text-sm">{post.author.username}</p>
+        {post.author?.username ? (
+          <p className="muted text-xs sm:text-sm">{post.author.username}</p>
         ) : null}
         {compact ? null : (
           <div className="space-y-2 pt-1">
@@ -73,20 +73,20 @@ export function PostCard({ post, canEdit, onDelete, onRestore, onAttend, compact
               <span>{post.attending ? "Je doet mee" : "Ik doe mee"}</span>
             </label>
             {Array.isArray(post.attendees) ? (
-              <div className="rounded-md border border-primary-100 bg-primary-50/80 px-3 py-3 text-sm dark:border-primary-600 dark:bg-primary-900/60">
+              <div className="rounded-md border border-primary-200 bg-primary-50/80 px-3 py-3 text-sm dark:border-primary-400 dark:bg-primary-900/80">
                 <p className="font-medium text-primary-700 dark:text-accent-200">
                   Bewoners die meedoen ({post.attendeeCount ?? post.attendees.length})
                 </p>
                 {post.attendees.length ? (
                   <ul className="mt-2 space-y-1">
                     {post.attendees.map((name) => (
-                      <li key={name} className="font-medium">
+                      <li key={name} className="font-medium text-ink">
                         {name}
                       </li>
                     ))}
                   </ul>
                 ) : (
-                  <p className="mt-2 text-primary-500">Nog niemand heeft zich opgegeven.</p>
+                  <p className="muted mt-2">Nog niemand heeft zich opgegeven.</p>
                 )}
               </div>
             ) : null}
