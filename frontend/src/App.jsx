@@ -18,6 +18,7 @@ export function App() {
       <Route path="/privacy" element={<PrivacyPage />} />
       <Route element={<ProtectedRoute />}>
         <Route element={<Layout />}>
+          <Route path="/" element={<BoardPage />} />
           <Route path="/bord" element={<BoardPage />} />
           <Route path="/overzicht" element={<DashboardPage />} />
           <Route element={<ProtectedRoute editor />}>
@@ -30,7 +31,7 @@ export function App() {
           </Route>
         </Route>
       </Route>
-      <Route path="*" element={<Navigate to="/bord" replace />} />
+      <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
 }

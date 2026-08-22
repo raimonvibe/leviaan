@@ -17,7 +17,7 @@ export function Layout() {
 
   const links = (
     <>
-      <NavLink to="/bord" className={linkClass}>
+      <NavLink to="/" className={linkClass} end>
         Bord
       </NavLink>
       <NavLink to="/overzicht" className={linkClass}>
@@ -45,7 +45,7 @@ export function Layout() {
     <div className="flex min-h-dvh flex-col">
       <header className="sticky top-0 z-40 border-b border-primary-100/70 bg-paper/95 backdrop-blur dark:border-primary-700 dark:bg-primary-900/90">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-3 pt-[max(0.75rem,env(safe-area-inset-top))]">
-          <NavLink to="/bord" className="min-w-0 shrink">
+          <NavLink to="/" className="min-w-0 shrink rounded-md" aria-label="Naar home">
             <Logo />
           </NavLink>
           <nav className="hidden items-center gap-1 lg:flex">{links}</nav>

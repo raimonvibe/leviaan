@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Navigate } from "react-router";
+import { Link, Navigate } from "react-router";
 import { getErrorMessage } from "../api/client.js";
 import { Footer } from "../components/Footer.jsx";
 import { Logo } from "../components/Logo.jsx";
@@ -30,7 +30,9 @@ export function UsernameSetupPage() {
   return (
     <div className="flex min-h-dvh flex-col">
       <div className="mx-auto flex w-full max-w-md flex-1 flex-col justify-center px-4 py-10">
-        <Logo />
+        <Link to="/" aria-label="Naar home">
+          <Logo />
+        </Link>
         <form onSubmit={handleSubmit} className="card mt-6 rounded-lg p-5 sm:p-7">
           <h1 className="page-title">Kies je gebruikersnaam</h1>
           <p className="mt-3 text-primary-600 dark:text-primary-200">

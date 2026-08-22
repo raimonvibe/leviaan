@@ -10,7 +10,7 @@ export function PrivacyPage() {
     <div className="flex min-h-dvh flex-col">
       <header className="border-b border-primary-100/70 bg-paper/95 dark:border-primary-700 dark:bg-primary-900/90">
         <div className="mx-auto flex max-w-3xl items-center justify-between gap-3 px-4 py-3">
-          <Link to="/bord">
+          <Link to="/" aria-label="Naar home">
             <Logo />
           </Link>
           <button type="button" onClick={toggleTheme} className="btn btn-ghost">
@@ -88,8 +88,8 @@ export function PrivacyPage() {
           </section>
         </div>
 
-        <Link to="/bord" className="btn btn-secondary mt-8">
-          Terug naar het bord
+        <Link to="/" className="btn btn-secondary mt-8">
+          Terug naar home
         </Link>
       </main>
       <Footer />

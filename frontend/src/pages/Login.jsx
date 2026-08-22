@@ -21,7 +21,9 @@ export function LoginPage() {
       <div className="mx-auto grid w-full max-w-5xl flex-1 items-center gap-8 px-5 py-10 lg:grid-cols-2 lg:gap-12">
         <div>
           <div className="flex items-center justify-between gap-3">
-            <Logo />
+            <Link to="/" aria-label="Naar home">
+              <Logo />
+            </Link>
             <button type="button" onClick={toggleTheme} className="btn btn-secondary text-primary-800 lg:hidden">
               {isDark ? "Licht" : "Donker"}
             </button>
