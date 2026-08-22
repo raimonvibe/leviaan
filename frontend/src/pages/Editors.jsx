@@ -62,12 +62,12 @@ export function EditorsPage() {
   return (
     <section className="space-y-8">
       <div>
-        <p className="text-xs uppercase tracking-[0.2em] text-brick-600 dark:text-accent-300">Beheer</p>
-        <h1 className="page-title mt-1">Begeleiders</h1>
+        <p className="text-xs uppercase tracking-[0.2em] text-brick-600 dark:text-accent-300">Beheerder</p>
+        <h1 className="page-title mt-1">Beheer</h1>
         <p className="mt-2 max-w-2xl text-primary-600 dark:text-primary-200">
-          Voeg een begeleider toe met een e-mailadres. Die persoon mag activiteiten plaatsen en ziet
-          de namen van bewoners die meedoen. Jij blijft beheerder en staat niet in hun lijst. Een
-          begeleider blijft begeleider en kan zelf even als bewoner meekijken.
+          Jij ziet alles: activiteiten, wie meedoet en de namen van bewoners. Voeg hier begeleiders
+          toe met hun Google-e-mail. Zij mogen plaatsen. Jij staat niet in hun lijst. Een begeleider
+          blijft begeleider.
         </p>
       </div>
 

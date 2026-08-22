@@ -9,6 +9,7 @@ import { PostFormPage } from "./pages/PostForm.jsx";
 import { GoogleAccountPage } from "./pages/GoogleAccount.jsx";
 import { PrivacyPage } from "./pages/Privacy.jsx";
 import { PostersPage } from "./pages/Posters.jsx";
+import { ResidentsPage } from "./pages/Residents.jsx";
 import { TrashPage } from "./pages/Trash.jsx";
 import { UsernameSetupPage } from "./pages/UsernameSetup.jsx";
 
@@ -30,6 +31,7 @@ export function App() {
             <Route path="/berichten/nieuw" element={<PostFormPage />} />
             <Route path="/berichten/:id/bewerken" element={<PostFormPage />} />
             <Route path="/prullenbak" element={<TrashPage />} />
+            <Route path="/bewoners" element={<ResidentsPage />} />
           </Route>
           <Route element={<ProtectedRoute creator />}>
             <Route path="/redactie" element={<EditorsPage />} />

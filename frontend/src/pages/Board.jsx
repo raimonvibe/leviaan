@@ -7,7 +7,7 @@ import { useToast } from "../contexts/ToastContext.jsx";
 import { isUpcoming } from "../utils/dates.js";
 
 export function BoardPage() {
-  const { isEditor, refreshUser } = useAuth();
+  const { isEditor, isCreator, refreshUser } = useAuth();
   const toast = useToast();
   const [searchParams] = useSearchParams();
   const [posts, setPosts] = useState([]);
@@ -86,9 +86,11 @@ export function BoardPage() {
         <div className="min-w-0">
           <h1 className="page-title">Wat speelt er?</h1>
           <p className="mt-1 max-w-xl text-sm text-primary-600 dark:text-primary-200">
-            {isEditor
-              ? "Als begeleider zie je de namen van bewoners die meedoen."
-              : "Zeg of je meedoet. Andere bewoners zien niet wie er nog meer komt."}
+            {isCreator
+              ? "Jij ziet alles: wie meedoet, de namen van bewoners en wat er speelt."
+              : isEditor
+                ? "Als begeleider zie je de namen van bewoners die meedoen."
+                : "Zeg of je meedoet. Andere bewoners zien niet wie er nog meer komt."}
           </p>
         </div>
         {isEditor ? (

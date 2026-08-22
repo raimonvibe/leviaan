@@ -19,7 +19,12 @@ export function DashboardPage() {
     { label: "Activiteiten", value: stats?.totalPosts ?? "—" },
     { label: "Nog te doen", value: stats?.upcomingPosts ?? "—" },
     { label: "Begeleiders", value: stats?.editors ?? "—", to: "/begeleiders", hint: "Tik om namen te zien" },
-    ...(isEditor ? [{ label: "In de prullenbak", value: stats?.trash ?? "—", to: "/prullenbak" }] : []),
+    ...(isEditor
+      ? [
+          { label: "Bewoners", value: stats?.visitors ?? "—", to: "/bewoners", hint: "Tik om namen te zien" },
+          { label: "In de prullenbak", value: stats?.trash ?? "—", to: "/prullenbak" },
+        ]
+      : []),
   ];
 
   return (
@@ -29,7 +34,7 @@ export function DashboardPage() {
         Een korte stand van het bord. Niks ingewikkelds, alleen tellingen.
       </p>
       {error ? <p className="mt-4 text-brick-600">{error}</p> : null}
-      <div className={`mt-8 grid gap-4 ${isEditor ? "sm:grid-cols-2 lg:grid-cols-4" : "sm:grid-cols-3"}`}>
+      <div className={`mt-8 grid gap-4 ${isEditor ? "sm:grid-cols-2 lg:grid-cols-3" : "sm:grid-cols-3"}`}>
         {cards.map((card) => {
           const inner = (
             <>
