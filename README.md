@@ -132,6 +132,25 @@ Live frontend: `https://leviaan.vercel.app`
    - `http://localhost:5173`
    - `https://leviaan.vercel.app`
 
+### Fout 401: invalid_client / OAuth client was not found
+
+Google herkent de Client ID niet. Dat is geen code-fout in deze repo.
+
+1. [Google Cloud Console](https://console.cloud.google.com/) → het juiste project → **APIs & Services → Credentials**.
+2. Als er geen **OAuth 2.0 Client ID** van het type **Web application** is: **Create credentials → OAuth client ID → Web application**.
+3. Vul de **OAuth consent screen** in als Google dat vraagt (app-naam, jouw e-mail, External of Internal).
+4. Bij de client, Authorized JavaScript origins:
+   - `http://localhost:5173`
+   - `https://leviaan.vercel.app`
+5. Kopieer alleen de **Client ID** (eindigt op `.apps.googleusercontent.com`). Niet de Client Secret.
+6. Zet diezelfde waarde op drie plekken:
+   - lokaal: `GOOGLE_CLIENT_ID` in `backend/.env` en `VITE_GOOGLE_CLIENT_ID` in `frontend/.env`
+   - Render: `GOOGLE_CLIENT_ID`
+   - Vercel: `VITE_GOOGLE_CLIENT_ID`
+7. Op Vercel: **Redeploy** (Vite bakt de Client ID in bij de build). Zonder nieuwe deploy blijft de oude of lege waarde staan.
+
+Geen extra spaties of aanhalingstekens in de Vercel/Render-velden. De Client Secret hoort nergens in de frontend.
+
 ### Keep-alive (GitHub Actions)
 
 Render free slaapt na ~15 minuten. `.github/workflows/keepalive.yml` pingt `/health` elke 10 minuten.
