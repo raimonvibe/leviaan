@@ -2,8 +2,9 @@ import { Navigate, Outlet, useLocation } from "react-router";
 import { useAuth } from "../contexts/AuthContext.jsx";
 
 export function ProtectedRoute({ editor = false, creator = false }) {
-  const { loading, isAuthenticated, needsUsername, isEditor, isCreator } = useAuth();
+  const { loading, isAuthenticated, needsUsername, isEditor, isCreator, user } = useAuth();
   const location = useLocation();
+  const isVisitor = user?.role === "visitor";
 
   if (loading) {
     return (
@@ -25,7 +26,7 @@ export function ProtectedRoute({ editor = false, creator = false }) {
     return <Navigate to="/bord" replace />;
   }
 
-  if (editor && !isEditor) {
+  if (editor && (isVisitor || !isEditor)) {
     return <Navigate to="/bord" replace />;
   }
 

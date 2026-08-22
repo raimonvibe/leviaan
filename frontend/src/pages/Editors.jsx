@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
+import { Link, Navigate } from "react-router";
 import { api, getErrorMessage } from "../api/client.js";
 import { useAuth } from "../contexts/AuthContext.jsx";
 import { useDialog } from "../contexts/DialogContext.jsx";
 import { useToast } from "../contexts/ToastContext.jsx";
 
 export function EditorsPage() {
-  const { user: me, isOwner, setRole } = useAuth();
+  const { user: me, isOwner, isEditor, setRole } = useAuth();
   const dialog = useDialog();
   const toast = useToast();
   const [users, setUsers] = useState([]);
@@ -23,8 +24,9 @@ export function EditorsPage() {
   }
 
   useEffect(() => {
+    if (!isEditor) return;
     load().catch((loadError) => setError(getErrorMessage(loadError)));
-  }, []);
+  }, [isEditor]);
 
   async function invite(event) {
     event.preventDefault();
@@ -99,6 +101,10 @@ export function EditorsPage() {
     return user.id !== me?.id;
   }
 
+  if (!isEditor) {
+    return <Navigate to="/bord" replace />;
+  }
+
   return (
     <section className="space-y-8">
       <div>
@@ -107,10 +113,12 @@ export function EditorsPage() {
         </p>
         <h1 className="page-title mt-1">Beheer</h1>
         <p className="mt-2 max-w-2xl text-primary-600 dark:text-primary-200">
-          Nodig iemand uit met het Google-e-mailadres van die begeleider. Dat adres wordt als
-          begeleider opgeslagen. Logt die persoon daarna in met hetzelfde Google-e-mailadres, dan is
-          die automatisch begeleider. Je mag begeleiders en bewoners van het bord halen. De
-          beheerder niet.
+          Nodig hier alleen een begeleider uit. Die Google-e-mail wordt begeleider. Bewoners hoef je
+          niet toe te voegen: zij loggen zelf in met Google. Uitleg over een account staat onderaan,
+          bij{" "}
+          <Link to="/google-account" className="underline decoration-accent-400 underline-offset-4">
+            Hoe maak ik een Google-account?
+          </Link>
         </p>
         {error ? <p className="note-error mt-3 text-sm">{error}</p> : null}
       </div>
@@ -119,9 +127,6 @@ export function EditorsPage() {
         <label className="label" htmlFor="email">
           Google-e-mail van een begeleider
         </label>
-        <p className="mb-3 text-sm text-primary-600 dark:text-primary-200">
-          Gebruik het adres waarmee die persoon bij Google inlogt, niet een ander mailadres.
-        </p>
         <div className="flex flex-col gap-3 sm:flex-row">
           <input
             id="email"
@@ -142,7 +147,7 @@ export function EditorsPage() {
         <div className="card rounded-lg p-4 sm:p-6">
           <h2 className="font-serif text-xl text-ink">Nog niet ingelogd</h2>
           <p className="mt-1 text-sm text-primary-600 dark:text-primary-200">
-            Deze uitnodiging wacht tot iemand inlogt met hetzelfde Google-e-mailadres.
+            Wacht tot deze begeleider inlogt met hetzelfde Google-adres.
           </p>
           <ul className="mt-4 divide-y divide-primary-100 dark:divide-primary-400">
             {invites.map((inviteItem) => (
@@ -160,7 +165,7 @@ export function EditorsPage() {
       <div>
         <h2 className="font-serif text-xl text-ink">Begeleiders</h2>
         <p className="mt-1 text-sm text-primary-600 dark:text-primary-200">
-          Zij mogen plaatsen en zien wie er meedoet. De beheerder staat hier niet bij.
+          Mogen plaatsen. De beheerder kun je niet verwijderen.
         </p>
         {begeleiders.length === 0 ? (
           <div className="card mt-4 rounded-lg p-5 text-primary-600 dark:text-primary-200">
@@ -188,7 +193,7 @@ export function EditorsPage() {
       <div>
         <h2 className="font-serif text-xl text-ink">Bewoners</h2>
         <p className="mt-1 text-sm text-primary-600 dark:text-primary-200">
-          Zij zien elkaars namen en wie er meedoet. Je mag hen van het bord halen.
+          Geen e-mail nodig. Zij komen vanzelf in deze lijst na inloggen.
         </p>
         {bewoners.length === 0 ? (
           <div className="card mt-4 rounded-lg p-5 text-primary-600 dark:text-primary-200">
@@ -214,8 +219,7 @@ export function EditorsPage() {
         <div className="card rounded-lg p-4 sm:p-6">
           <h2 className="font-serif text-xl text-ink">Zelf meekijken</h2>
           <p className="mt-2 text-sm text-primary-600 dark:text-primary-200">
-            Kijk hoe het bord eruitziet voor een begeleider of bewoner. Rechtsboven kun je terug naar
-            beheer.
+            Zo ziet het bord eruit voor een begeleider of bewoner.
           </p>
           <div className="mt-4 flex flex-wrap gap-2">
             <button type="button" className="btn btn-secondary" onClick={() => testAs("editor")}>

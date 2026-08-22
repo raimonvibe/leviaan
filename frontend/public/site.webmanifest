@@ -3,8 +3,8 @@
   "short_name": "Leviaan",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#000000",
-  "theme_color": "#0b1f3a",
+  "background_color": "#fffbf4",
+  "theme_color": "#fffbf4",
   "icons": [
     {
       "src": "/icon-192.png",

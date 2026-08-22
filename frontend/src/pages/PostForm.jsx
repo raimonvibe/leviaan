@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
-import { Link, useNavigate, useParams } from "react-router";
+import { Link, Navigate, useNavigate, useParams } from "react-router";
 import { api, getErrorMessage } from "../api/client.js";
 import { DateRangePicker } from "../components/DateRangePicker.jsx";
 import { Lightbox } from "../components/Lightbox.jsx";
+import { useAuth } from "../contexts/AuthContext.jsx";
 import { useToast } from "../contexts/ToastContext.jsx";
 import { toInputDate } from "../utils/dates.js";
 import { compressImage } from "../utils/image.js";
@@ -19,6 +20,7 @@ export function PostFormPage() {
   const { id } = useParams();
   const navigate = useNavigate();
   const toast = useToast();
+  const { isEditor } = useAuth();
   const isEdit = Boolean(id);
   const [form, setForm] = useState(emptyForm);
   const [error, setError] = useState("");
@@ -28,7 +30,7 @@ export function PostFormPage() {
   const [previewOpen, setPreviewOpen] = useState(false);
 
   useEffect(() => {
-    if (!isEdit) return;
+    if (!isEdit || !isEditor) return;
     api
       .get(`/posts/${id}`)
       .then((response) => {
@@ -43,7 +45,7 @@ export function PostFormPage() {
       })
       .catch((loadError) => setError(getErrorMessage(loadError)))
       .finally(() => setLoading(false));
-  }, [id, isEdit]);
+  }, [id, isEdit, isEditor]);
 
   function updateField(field, value) {
     setForm((current) => ({ ...current, [field]: value }));
@@ -62,6 +64,7 @@ export function PostFormPage() {
 
   async function handleSubmit(event) {
     event.preventDefault();
+    if (!isEditor) return;
     if (!form.imageData) {
       setError("Kies nog een foto.");
       return;
@@ -82,6 +85,10 @@ export function PostFormPage() {
     } finally {
       setSaving(false);
     }
+  }
+
+  if (!isEditor) {
+    return <Navigate to="/bord" replace />;
   }
 
   if (loading) {

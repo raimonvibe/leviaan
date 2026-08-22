@@ -1,11 +1,13 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router";
+import { Link, Navigate } from "react-router";
 import { api, getErrorMessage } from "../api/client.js";
 import { PostCard } from "../components/PostCard.jsx";
+import { useAuth } from "../contexts/AuthContext.jsx";
 import { useDialog } from "../contexts/DialogContext.jsx";
 import { useToast } from "../contexts/ToastContext.jsx";
 
 export function TrashPage() {
+  const { isEditor } = useAuth();
   const dialog = useDialog();
   const toast = useToast();
   const [posts, setPosts] = useState([]);
@@ -27,8 +29,9 @@ export function TrashPage() {
   }
 
   useEffect(() => {
+    if (!isEditor) return;
     load();
-  }, []);
+  }, [isEditor]);
 
   async function restore(post) {
     try {
@@ -78,6 +81,10 @@ export function TrashPage() {
     } finally {
       setEmptying(false);
     }
+  }
+
+  if (!isEditor) {
+    return <Navigate to="/bord" replace />;
   }
 
   return (

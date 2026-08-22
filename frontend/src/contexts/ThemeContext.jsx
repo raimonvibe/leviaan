@@ -2,12 +2,24 @@ import { createContext, useContext, useEffect, useMemo, useState } from "react";
 
 const ThemeContext = createContext(null);
 const THEME_KEY = "leviaan_theme";
+const LIGHT_CHROME = "#fffbf4";
+const DARK_CHROME = "#0b1f3a";
+
+function applyChrome(theme) {
+  const dark = theme === "dark";
+  document.documentElement.classList.toggle("dark", dark);
+  document.documentElement.style.colorScheme = dark ? "dark" : "light";
+  const themeColor = document.querySelector('meta[name="theme-color"]');
+  if (themeColor) themeColor.setAttribute("content", dark ? DARK_CHROME : LIGHT_CHROME);
+  const colorScheme = document.querySelector('meta[name="color-scheme"]');
+  if (colorScheme) colorScheme.setAttribute("content", dark ? "dark" : "light");
+}
 
 export function ThemeProvider({ children }) {
-  const [theme, setTheme] = useState(() => localStorage.getItem(THEME_KEY) || "light");
+  const [theme, setTheme] = useState("light");
 
   useEffect(() => {
-    document.documentElement.classList.toggle("dark", theme === "dark");
+    applyChrome(theme);
     localStorage.setItem(THEME_KEY, theme);
   }, [theme]);
 
