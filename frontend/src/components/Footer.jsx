@@ -21,6 +21,9 @@ export function Footer({ light = false }) {
           <a href="https://www.leviaan.nl" className={link} target="_blank" rel="noreferrer">
             leviaan.nl
           </a>
+          <a href="https://github.com/raimonvibe/leviaan" className={link} target="_blank" rel="noreferrer">
+            Kijk naar de code!
+          </a>
           <Link to="/privacy" className={link}>
             Privacy-verklaring
           </Link>
