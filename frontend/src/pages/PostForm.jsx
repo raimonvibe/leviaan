@@ -107,7 +107,6 @@ export function PostFormPage() {
           <p className="mt-1 text-right text-xs text-primary-500">{form.title.length}/160</p>
         </div>
         <div>
-          <p className="label">Datum</p>
           <DateRangePicker
             start={form.activityDate}
             end={form.activityEndDate}

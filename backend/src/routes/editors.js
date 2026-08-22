@@ -100,8 +100,8 @@ router.patch("/:id/role", async (req, res) => {
   if (target.rows[0].role === "creator") {
     return res.status(400).json({ error: "De beheerder kan niet worden gewijzigd." });
   }
-  if (Number(req.params.id) === req.user.id) {
-    return res.status(400).json({ error: "Je kunt je eigen rol niet wijzigen." });
+  if (Number(req.params.id) === req.user.id && role !== "creator") {
+    return res.status(400).json({ error: "Gebruik ‘Test als’ om jezelf tijdelijk te wisselen." });
   }
 
   const updated = await query(

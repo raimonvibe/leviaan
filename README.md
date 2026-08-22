@@ -16,19 +16,19 @@ De sfeer is klassiek campus: navy, goud, baksteen. Licht en donker. Nederlands.
 
 | Rol | Mag |
 | --- | --- |
-| 👀 Bezoeker | Bord bekijken, zoeken, filteren, “ik ben erbij” aanzetten |
-| ✏️ Redacteur | Kaarten maken, bewerken, naar de prullenbak, herstellen |
-| 🔑 Beheerder | Alles van redacteur, plus redacteuren uitnodigen |
+| 👀 Bewoner | Bord bekijken, filteren, “ik ben erbij” aanzetten |
+| ✏️ Activiteitenmanager | Kaarten maken, bewerken, prullenbak legen |
+| 🔑 Beheerder | Alles van manager, plus managers uitnodigen of verwijderen |
 
-Bezoekers zien **niet** wie er nog meer komt. Redacteuren en de beheerder wel, als gebruikersnaam.
+Bewoners zien **niet** wie er nog meer komt. Activiteitenmanagers en de beheerder wel, als gebruikersnaam.
 
 ## 📌 Wat erin zit
 
 - Google-login, daarna zelf een gebruikersnaam kiezen
 - Kaarten met foto, titel, tekst en datumreeks
-- Alleen / komend / geweest, plus zoeken
+- Alleen / komend / geweest
 - Link naar één bericht kopiëren
-- Soft delete met undo en een prullenbak
+- Soft delete met undo, prullenbak en legen (gratis 500 MB-database)
 - Aanwezigheid: bezoeker vinkt zichzelf aan, zonder namen te zien
 - Licht- en donkermodus
 - Privacy-pagina in gewone taal
@@ -172,7 +172,7 @@ GitHub-repo → Settings → Secrets and variables → Actions → Variables →
 
 ## 📷 Foto's bij berichten
 
-Redacteuren kiezen een afbeelding in het formulier. Die gaat niet naar Vercel- of Render-schijf.
+Activiteitenmanagers kiezen een afbeelding in het formulier. Die gaat niet naar Vercel- of Render-schijf.
 
 1. De browser verkleint de foto tot max 1280 px en slaat die op als JPEG.
 2. De API bewaart de foto als data-URL in Neon.
@@ -184,5 +184,5 @@ Voor een huisbord is dit genoeg. Heel veel of hele grote foto's maken Neon zwaar
 
 - Alleen je gebruikersnaam is zichtbaar.
 - E-mail blijft privé.
-- Bezoekers zien geen namenlijst bij “ik ben erbij”.
+- Bewoners zien geen namenlijst bij “ik ben erbij”.
 - De volledige tekst staat op de [privacy-pagina](https://leviaan.vercel.app/privacy) in de app.

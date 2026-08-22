@@ -1,13 +1,15 @@
 import { useEffect, useState } from "react";
 import { api, getErrorMessage } from "../api/client.js";
+import { useAuth } from "../contexts/AuthContext.jsx";
 
 function roleLabel(role) {
   if (role === "creator") return "Beheerder";
-  if (role === "editor") return "Redacteur";
-  return "Bezoeker";
+  if (role === "editor") return "Activiteitenmanager";
+  return "Bewoner";
 }
 
 export function EditorsPage() {
+  const { setRole } = useAuth();
   const [users, setUsers] = useState([]);
   const [invites, setInvites] = useState([]);
   const [email, setEmail] = useState("");
@@ -32,9 +34,9 @@ export function EditorsPage() {
       const response = await api.post("/editors/invites", { email });
       setEmail("");
       if (response.data.promoted) {
-        setNotice(`${response.data.user.username} is nu redacteur.`);
+        setNotice(`${response.data.user.username} is nu activiteitenmanager.`);
       } else {
-        setNotice("Uitnodiging is klaar. Zodra deze persoon inlogt, wordt die redacteur.");
+        setNotice("Uitnodiging is klaar. Zodra deze persoon inlogt, wordt die activiteitenmanager.");
       }
       await load();
     } catch (inviteError) {
@@ -44,11 +46,25 @@ export function EditorsPage() {
 
   async function changeRole(user, role) {
     setError("");
+    const label = role === "visitor" ? "bewoner" : "activiteitenmanager";
+    if (role === "visitor" && !window.confirm(`${user.username || "Deze persoon"} wordt bewoner en kan geen activiteiten meer plaatsen.`)) {
+      return;
+    }
     try {
       await api.patch(`/editors/${user.id}/role`, { role });
+      setNotice(`${user.username || "Deze persoon"} is nu ${label}.`);
       await load();
     } catch (roleError) {
       setError(getErrorMessage(roleError));
+    }
+  }
+
+  async function testAs(role) {
+    setError("");
+    try {
+      await setRole(role);
+    } catch (roleError) {
+      setError(getErrorMessage(roleError, "Wisselen is niet gelukt."));
     }
   }
 
@@ -65,16 +81,16 @@ export function EditorsPage() {
     <section className="space-y-8">
       <div>
         <p className="text-xs uppercase tracking-[0.2em] text-brick-600 dark:text-accent-300">Beheer</p>
-        <h1 className="page-title mt-1">Redactie</h1>
+        <h1 className="page-title mt-1">Activiteitenmanagers</h1>
         <p className="mt-2 max-w-2xl text-primary-600 dark:text-primary-200">
-          Nodig redacteuren uit via e-mail. Dat adres blijft privé: op het bord zien anderen
-          alleen de gekozen gebruikersnaam.
+          Nodig activiteitenmanagers uit via e-mail. Dat adres blijft privé: op het bord zien
+          anderen alleen de gekozen gebruikersnaam. Jij kunt hen hier ook weer bewoner maken.
         </p>
       </div>
 
       <form onSubmit={invite} className="card rounded-lg p-4 sm:p-6">
         <label className="label" htmlFor="email">
-          E-mail van een nieuwe redacteur
+          E-mail van een nieuwe activiteitenmanager
         </label>
         <div className="flex flex-col gap-3 sm:flex-row">
           <input
@@ -93,6 +109,22 @@ export function EditorsPage() {
         {notice ? <p className="mt-3 text-sm text-primary-600 dark:text-accent-300">{notice}</p> : null}
         {error ? <p className="mt-3 text-sm text-brick-600">{error}</p> : null}
       </form>
+
+      <div className="card rounded-lg p-4 sm:p-6">
+        <h2 className="font-serif text-xl">Zelf testen</h2>
+        <p className="mt-2 text-sm text-primary-600 dark:text-primary-200">
+          Kijk even hoe het bord eruitziet als activiteitenmanager of bewoner. Rechtsboven kun je
+          altijd terug naar beheerder.
+        </p>
+        <div className="mt-4 flex flex-wrap gap-2">
+          <button type="button" className="btn btn-secondary" onClick={() => testAs("editor")}>
+            Test als activiteitenmanager
+          </button>
+          <button type="button" className="btn btn-secondary" onClick={() => testAs("visitor")}>
+            Test als bewoner
+          </button>
+        </div>
+      </div>
 
       {invites.length > 0 ? (
         <div className="card rounded-lg p-6">
@@ -124,12 +156,12 @@ export function EditorsPage() {
               {user.role === "creator" ? null : (
                 <div className="flex gap-2">
                   {user.role === "editor" ? (
-                    <button type="button" className="btn btn-secondary" onClick={() => changeRole(user, "visitor")}>
-                      Maak bezoeker
+                    <button type="button" className="btn btn-brick" onClick={() => changeRole(user, "visitor")}>
+                      Verwijder als manager
                     </button>
                   ) : (
                     <button type="button" className="btn btn-primary" onClick={() => changeRole(user, "editor")}>
-                      Maak redacteur
+                      Maak activiteitenmanager
                     </button>
                   )}
                 </div>

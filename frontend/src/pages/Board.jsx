@@ -13,7 +13,6 @@ export function BoardPage() {
   const [posts, setPosts] = useState([]);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
-  const [query, setQuery] = useState("");
   const [filter, setFilter] = useState("all");
 
   useEffect(() => {
@@ -63,14 +62,12 @@ export function BoardPage() {
   }
 
   const visible = useMemo(() => {
-    const needle = query.trim().toLowerCase();
     return posts.filter((post) => {
       if (filter === "upcoming" && !isUpcoming(post)) return false;
       if (filter === "past" && isUpcoming(post)) return false;
-      if (!needle) return true;
-      return post.title.toLowerCase().includes(needle) || post.body.toLowerCase().includes(needle);
+      return true;
     });
-  }, [posts, query, filter]);
+  }, [posts, filter]);
 
   return (
     <section>
@@ -88,14 +85,7 @@ export function BoardPage() {
         ) : null}
       </div>
 
-      <div className="mb-5 space-y-3">
-        <input
-          className="input"
-          value={query}
-          onChange={(event) => setQuery(event.target.value)}
-          placeholder="Zoeken"
-          aria-label="Zoeken"
-        />
+      <div className="mb-5">
         <div className="chip-row">
           {[
             ["all", "Alles"],
@@ -118,7 +108,9 @@ export function BoardPage() {
       {loading ? <p className="text-primary-500">Laden…</p> : null}
       {!loading && visible.length === 0 ? (
         <div className="card rounded-lg p-8 text-center">
-          <h2 className="font-serif text-xl">{posts.length === 0 ? "Nog geen activiteiten" : "Niets gevonden"}</h2>
+          <h2 className="font-serif text-xl">
+            {posts.length === 0 ? "Nog geen activiteiten" : filter === "upcoming" ? "Niets komends" : "Niets geweest"}
+          </h2>
         </div>
       ) : null}
       <div className="grid gap-4 sm:gap-5 md:grid-cols-2">

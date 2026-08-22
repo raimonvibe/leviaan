@@ -1,7 +1,8 @@
 import { Router } from "express";
 import { OAuth2Client } from "google-auth-library";
 import { query } from "../db.js";
-import { currentUserPayload, requireAuth, signToken } from "../middleware/auth.js";
+import { currentUserPayload, requireAuth, requireUsername, signToken } from "../middleware/auth.js";
+import { isOwnerEmail } from "../publicUser.js";
 
 const router = Router();
 
@@ -103,6 +104,24 @@ router.post("/google", async (req, res) => {
 
 router.get("/me", requireAuth, (req, res) => {
   res.json({ user: currentUserPayload(req.user) });
+});
+
+router.patch("/role", requireAuth, requireUsername, async (req, res) => {
+  if (!isOwnerEmail(req.user.email)) {
+    return res.status(403).json({ error: "Alleen de beheerder kan dit wisselen." });
+  }
+
+  const role = String(req.body?.role || "");
+  if (!["visitor", "editor", "creator"].includes(role)) {
+    return res.status(400).json({ error: "Kies beheerder, activiteitenmanager of bewoner." });
+  }
+
+  const updated = await query(
+    "UPDATE users SET role = $1 WHERE id = $2 RETURNING id, email, username, role",
+    [role, req.user.id],
+  );
+
+  res.json({ user: currentUserPayload(updated.rows[0]) });
 });
 
 router.post("/username", requireAuth, async (req, res) => {

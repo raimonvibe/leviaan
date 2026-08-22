@@ -9,6 +9,7 @@ export function TrashPage() {
   const [posts, setPosts] = useState([]);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
+  const [emptying, setEmptying] = useState(false);
 
   async function load() {
     setLoading(true);
@@ -48,15 +49,50 @@ export function TrashPage() {
     }
   }
 
+  async function emptyTrash() {
+    if (
+      !window.confirm(
+        `De hele prullenbak legen (${posts.length} ${posts.length === 1 ? "bericht" : "berichten"})? Dit kan niet meer ongedaan.`,
+      )
+    ) {
+      return;
+    }
+    setEmptying(true);
+    try {
+      await api.delete("/posts/trash");
+      setPosts([]);
+      toast.show({ message: "Prullenbak is leeg.", duration: 4000 });
+    } catch (emptyError) {
+      setError(getErrorMessage(emptyError, "Legen is niet gelukt."));
+    } finally {
+      setEmptying(false);
+    }
+  }
+
   return (
     <section>
       <h1 className="page-title">Prullenbak</h1>
-      <p className="mt-2 max-w-2xl text-primary-600 dark:text-primary-200">
+      <div className="card mt-4 rounded-lg border-accent-400/60 p-4 sm:p-5">
+        <p className="font-medium">Gratis database van 500 MB</p>
+        <p className="mt-2 text-sm text-primary-600 dark:text-primary-200">
+          Activiteitenmanagers: we draaien op een gratis Neon-database van 0,5 GB. Foto’s in
+          verwijderde berichten blijven ruimte innemen. Leeg de prullenbak als het kan, zodat het
+          bord niet volloopt.
+        </p>
+      </div>
+      <p className="mt-4 max-w-2xl text-primary-600 dark:text-primary-200">
         Verwijderde activiteiten blijven hier staan tot je ze terugzet of definitief wist.
       </p>
-      <Link to="/bord" className="btn btn-secondary mt-4">
-        Terug naar het bord
-      </Link>
+      <div className="mt-4 flex flex-wrap gap-2">
+        <Link to="/bord" className="btn btn-secondary">
+          Terug naar het bord
+        </Link>
+        {posts.length > 0 ? (
+          <button type="button" className="btn btn-brick" onClick={emptyTrash} disabled={emptying}>
+            {emptying ? "Legen…" : "Prullenbak legen"}
+          </button>
+        ) : null}
+      </div>
       {error ? <p className="mt-6 text-brick-600">{error}</p> : null}
       {loading ? <p className="mt-6 text-primary-500">Prullenbak wordt geopend…</p> : null}
       {!loading && posts.length === 0 ? (

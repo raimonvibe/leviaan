@@ -18,7 +18,7 @@ export function DashboardPage() {
   const cards = [
     { label: "Totaal berichten", value: stats?.totalPosts ?? "—" },
     { label: "Komende activiteiten", value: stats?.upcomingPosts ?? "—" },
-    { label: "Redacteuren", value: stats?.editors ?? "—" },
+    { label: "Activiteitenmanagers", value: stats?.editors ?? "—" },
     ...(isEditor ? [{ label: "In de prullenbak", value: stats?.trash ?? "—" }] : []),
   ];
 
@@ -50,7 +50,7 @@ export function DashboardPage() {
         ) : null}
         {isCreator ? (
           <Link to="/redactie" className="btn btn-secondary">
-            Redacteuren beheren
+            Managers beheren
           </Link>
         ) : null}
       </div>

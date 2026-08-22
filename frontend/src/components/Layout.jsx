@@ -12,7 +12,7 @@ const linkClass = ({ isActive }) =>
   }`;
 
 export function Layout() {
-  const { user, isEditor, isCreator, logout } = useAuth();
+  const { user, isEditor, isCreator, isOwner, setRole, logout } = useAuth();
   const { isDark, toggleTheme } = useTheme();
 
   const links = (
@@ -35,7 +35,7 @@ export function Layout() {
       ) : null}
       {isCreator ? (
         <NavLink to="/redactie" className={linkClass}>
-          Redactie
+          Managers
         </NavLink>
       ) : null}
     </>
@@ -58,6 +58,15 @@ export function Layout() {
             >
               {isDark ? "Licht" : "Donker"}
             </button>
+            {isOwner && !isCreator ? (
+              <button
+                type="button"
+                className="btn btn-brick px-3"
+                onClick={() => setRole("creator").catch(() => {})}
+              >
+                Weer beheerder
+              </button>
+            ) : null}
             <p className="hidden max-w-28 truncate text-sm sm:block">{user?.username}</p>
             <button type="button" onClick={logout} className="btn btn-ghost px-3">
               <span className="sm:hidden">Uit</span>

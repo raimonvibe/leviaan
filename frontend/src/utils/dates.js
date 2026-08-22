@@ -13,8 +13,6 @@ const months = [
   "december",
 ];
 
-const weekdays = ["ma", "di", "wo", "do", "vr", "za", "zo"];
-
 export function toDate(value) {
   return new Date(`${String(value).slice(0, 10)}T00:00:00`);
 }
@@ -122,14 +120,3 @@ export function weekRange() {
   return { start: toInputDate(monday), end: toInputDate(sunday) };
 }
 
-export function monthGrid(year, month) {
-  const first = new Date(year, month, 1);
-  const startWeekday = (first.getDay() + 6) % 7;
-  const days = new Date(year, month + 1, 0).getDate();
-  const cells = [];
-  for (let i = 0; i < startWeekday; i += 1) cells.push(null);
-  for (let day = 1; day <= days; day += 1) {
-    cells.push(toInputDate(new Date(year, month, day)));
-  }
-  return { year, month, label: `${months[month]} ${year}`, weekdays, cells };
-}

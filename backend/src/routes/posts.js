@@ -139,6 +139,11 @@ router.get("/", requireAuth, requireUsername, async (req, res) => {
   res.json({ posts: await withAttendance(result.rows, req.user) });
 });
 
+router.delete("/trash", requireAuth, requireUsername, requireEditor, async (req, res) => {
+  const result = await query("DELETE FROM posts WHERE deleted_at IS NOT NULL RETURNING id");
+  res.json({ ok: true, deleted: result.rowCount });
+});
+
 router.get("/trash", requireAuth, requireUsername, requireEditor, async (req, res) => {
   const result = await query(
     `${postSelect} WHERE p.deleted_at IS NOT NULL ORDER BY p.deleted_at DESC`,
