@@ -38,7 +38,15 @@ ALTER TABLE posts ADD COLUMN IF NOT EXISTS activity_end_date DATE;
 
 CREATE INDEX IF NOT EXISTS idx_posts_activity_date ON posts (activity_date DESC);
 CREATE INDEX IF NOT EXISTS idx_posts_created_at ON posts (created_at DESC);
+CREATE TABLE IF NOT EXISTS attendances (
+  post_id INTEGER NOT NULL REFERENCES posts(id) ON DELETE CASCADE,
+  user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (post_id, user_id)
+);
+
 CREATE INDEX IF NOT EXISTS idx_posts_deleted_at ON posts (deleted_at);
+CREATE INDEX IF NOT EXISTS idx_attendances_user_id ON attendances (user_id);
 
 CREATE OR REPLACE FUNCTION update_updated_at_column()
 RETURNS TRIGGER AS $$

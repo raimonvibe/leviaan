@@ -46,15 +46,15 @@ export function PrivacyPage() {
               <li>Je e-mailadres, alleen voor het account</li>
               <li>De gebruikersnaam die jij zelf kiest</li>
               <li>Berichten: foto, tekst en datum</li>
+              <li>Of je je bij een activiteit hebt aangemeld</li>
             </ul>
           </section>
 
           <section className="card rounded-lg p-5">
             <h2 className="font-serif text-xl">Wat zien anderen?</h2>
             <p className="mt-2 leading-relaxed">
-              Op het bord zien huisgenoten alleen je <strong>gebruikersnaam</strong>, plus de kaarten van de
-              redactie. Je e-mailadres is niet zichtbaar. De beheerder ziet een e-mailadres alleen als die
-              zelf iemand als redacteur uitnodigt.
+              Bewoners zien elkaars namen niet. Je kunt wel aanvinken of je bij een activiteit bent. Alleen
+              redactie en de beheerder zien welke namen zich hebben aangemeld. Je e-mailadres blijft privé.
             </p>
           </section>
 

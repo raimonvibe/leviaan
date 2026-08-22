@@ -4,7 +4,7 @@ import { useToast } from "../contexts/ToastContext.jsx";
 import { formatRange, formatShortDate, isToday, isUpcoming } from "../utils/dates.js";
 import { Lightbox } from "./Lightbox.jsx";
 
-export function PostCard({ post, canEdit, onDelete, onRestore, compact = false }) {
+export function PostCard({ post, canEdit, onDelete, onRestore, onAttend, compact = false }) {
   const [open, setOpen] = useState(false);
   const toast = useToast();
   const stamp = formatShortDate(post.activityDate);
@@ -58,7 +58,36 @@ export function PostCard({ post, canEdit, onDelete, onRestore, compact = false }
             {post.body}
           </p>
         )}
-        <p className="text-xs text-primary-500 sm:text-sm">{post.author?.username || "redactie"}</p>
+        {canEdit && post.author?.username ? (
+          <p className="text-xs text-primary-500 sm:text-sm">{post.author.username}</p>
+        ) : null}
+        {compact ? null : (
+          <div className="space-y-2 pt-1">
+            <label className="flex min-h-11 cursor-pointer items-center gap-3 text-sm">
+              <input
+                type="checkbox"
+                className="h-4 w-4 accent-primary-600"
+                checked={Boolean(post.attending)}
+                onChange={() => onAttend?.(post)}
+              />
+              <span>{post.attending ? "Je hebt je aangemeld" : "Ik ben erbij"}</span>
+            </label>
+            {canEdit ? (
+              <div className="rounded-md bg-primary-50/80 px-3 py-2 text-sm dark:bg-primary-900/60">
+                <p className="text-primary-500">Aanwezig ({post.attendeeCount ?? 0})</p>
+                {post.attendees?.length ? (
+                  <ul className="mt-1 space-y-0.5">
+                    {post.attendees.map((name) => (
+                      <li key={name}>{name}</li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="mt-1 text-primary-500">Nog niemand.</p>
+                )}
+              </div>
+            ) : null}
+          </div>
+        )}
         {canEdit ? (
           <div className="flex flex-wrap gap-2 pt-1">
             {onRestore ? (

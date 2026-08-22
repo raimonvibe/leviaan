@@ -1,12 +1,12 @@
 import { Router } from "express";
 import { query } from "../db.js";
 import { requireAuth, requireEditor, requireUsername } from "../middleware/auth.js";
-import { toPublicUser } from "../publicUser.js";
+import { isEditorRole, toPublicUser } from "../publicUser.js";
 
 const router = Router();
 const MAX_IMAGE_CHARS = 1_800_000;
 
-function mapPost(row) {
+function mapPost(row, extras = {}) {
   return {
     id: row.id,
     title: row.title,
@@ -22,7 +22,56 @@ function mapPost(row) {
       username: row.author_username,
       role: row.author_role,
     }),
+    attending: Boolean(extras.attending),
+    attendeeCount: extras.attendeeCount,
+    attendees: extras.attendees,
   };
+}
+
+async function withAttendance(rows, user) {
+  if (rows.length === 0) return [];
+  const ids = rows.map((row) => row.id);
+  const [mine, counts] = await Promise.all([
+    query(
+      "SELECT post_id FROM attendances WHERE user_id = $1 AND post_id = ANY($2::int[])",
+      [user.id, ids],
+    ),
+    query(
+      "SELECT post_id, COUNT(*)::int AS count FROM attendances WHERE post_id = ANY($1::int[]) GROUP BY post_id",
+      [ids],
+    ),
+  ]);
+  const mineSet = new Set(mine.rows.map((row) => row.post_id));
+  const countMap = new Map(counts.rows.map((row) => [row.post_id, row.count]));
+
+  let namesByPost = new Map();
+  if (isEditorRole(user.role)) {
+    const names = await query(
+      `SELECT a.post_id, u.username
+       FROM attendances a
+       JOIN users u ON u.id = a.user_id
+       WHERE a.post_id = ANY($1::int[]) AND u.username IS NOT NULL
+       ORDER BY lower(u.username)`,
+      [ids],
+    );
+    for (const row of names.rows) {
+      const list = namesByPost.get(row.post_id) || [];
+      list.push(row.username);
+      namesByPost.set(row.post_id, list);
+    }
+  }
+
+  return rows.map((row) => {
+    const post = mapPost(row, {
+      attending: mineSet.has(row.id),
+      attendeeCount: isEditorRole(user.role) ? countMap.get(row.id) || 0 : undefined,
+      attendees: isEditorRole(user.role) ? namesByPost.get(row.id) || [] : undefined,
+    });
+    if (!isEditorRole(user.role)) {
+      post.author = null;
+    }
+    return post;
+  });
 }
 
 function validatePost({ title, body, activityDate, activityEndDate, imageData, requireImage }) {
@@ -83,18 +132,18 @@ const postSelect = `
   JOIN users u ON u.id = p.author_id
 `;
 
-router.get("/", requireAuth, requireUsername, async (_req, res) => {
+router.get("/", requireAuth, requireUsername, async (req, res) => {
   const result = await query(
     `${postSelect} WHERE p.deleted_at IS NULL ORDER BY p.activity_date DESC, p.created_at DESC`,
   );
-  res.json({ posts: result.rows.map(mapPost) });
+  res.json({ posts: await withAttendance(result.rows, req.user) });
 });
 
-router.get("/trash", requireAuth, requireUsername, requireEditor, async (_req, res) => {
+router.get("/trash", requireAuth, requireUsername, requireEditor, async (req, res) => {
   const result = await query(
     `${postSelect} WHERE p.deleted_at IS NOT NULL ORDER BY p.deleted_at DESC`,
   );
-  res.json({ posts: result.rows.map(mapPost) });
+  res.json({ posts: await withAttendance(result.rows, req.user) });
 });
 
 router.get("/:id", requireAuth, requireUsername, async (req, res) => {
@@ -102,7 +151,8 @@ router.get("/:id", requireAuth, requireUsername, async (req, res) => {
   if (result.rowCount === 0) {
     return res.status(404).json({ error: "Dit bericht bestaat niet." });
   }
-  res.json({ post: mapPost(result.rows[0]) });
+  const [post] = await withAttendance(result.rows, req.user);
+  res.json({ post });
 });
 
 router.post("/", requireAuth, requireUsername, requireEditor, async (req, res) => {
@@ -119,7 +169,8 @@ router.post("/", requireAuth, requireUsername, requireEditor, async (req, res) =
   );
 
   const created = await query(`${postSelect} WHERE p.id = $1`, [result.rows[0].id]);
-  res.status(201).json({ post: mapPost(created.rows[0]) });
+  const [post] = await withAttendance(created.rows, req.user);
+  res.status(201).json({ post });
 });
 
 router.put("/:id", requireAuth, requireUsername, requireEditor, async (req, res) => {
@@ -148,7 +199,8 @@ router.put("/:id", requireAuth, requireUsername, requireEditor, async (req, res)
   );
 
   const updated = await query(`${postSelect} WHERE p.id = $1`, [req.params.id]);
-  res.json({ post: mapPost(updated.rows[0]) });
+  const [post] = await withAttendance(updated.rows, req.user);
+  res.json({ post });
 });
 
 router.delete("/:id", requireAuth, requireUsername, requireEditor, async (req, res) => {
@@ -177,7 +229,34 @@ router.post("/:id/restore", requireAuth, requireUsername, requireEditor, async (
     return res.status(404).json({ error: "Dit bericht staat niet in de prullenbak." });
   }
   const restored = await query(`${postSelect} WHERE p.id = $1`, [req.params.id]);
-  res.json({ post: mapPost(restored.rows[0]) });
+  const [post] = await withAttendance(restored.rows, req.user);
+  res.json({ post });
+});
+
+router.post("/:id/attend", requireAuth, requireUsername, async (req, res) => {
+  const existing = await query("SELECT id FROM posts WHERE id = $1 AND deleted_at IS NULL", [req.params.id]);
+  if (existing.rowCount === 0) {
+    return res.status(404).json({ error: "Dit bericht bestaat niet." });
+  }
+  await query(
+    `INSERT INTO attendances (post_id, user_id)
+     VALUES ($1, $2)
+     ON CONFLICT (post_id, user_id) DO NOTHING`,
+    [req.params.id, req.user.id],
+  );
+  const result = await query(`${postSelect} WHERE p.id = $1`, [req.params.id]);
+  const [post] = await withAttendance(result.rows, req.user);
+  res.json({ post });
+});
+
+router.delete("/:id/attend", requireAuth, requireUsername, async (req, res) => {
+  await query("DELETE FROM attendances WHERE post_id = $1 AND user_id = $2", [req.params.id, req.user.id]);
+  const result = await query(`${postSelect} WHERE p.id = $1 AND p.deleted_at IS NULL`, [req.params.id]);
+  if (result.rowCount === 0) {
+    return res.status(404).json({ error: "Dit bericht bestaat niet." });
+  }
+  const [post] = await withAttendance(result.rows, req.user);
+  res.json({ post });
 });
 
 router.delete("/:id/permanent", requireAuth, requireUsername, requireEditor, async (req, res) => {

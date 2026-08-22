@@ -51,17 +51,24 @@ export function BoardPage() {
     }
   }
 
+  async function handleAttend(post) {
+    try {
+      const response = post.attending
+        ? await api.delete(`/posts/${post.id}/attend`)
+        : await api.post(`/posts/${post.id}/attend`);
+      setPosts((current) => current.map((item) => (item.id === post.id ? response.data.post : item)));
+    } catch (attendError) {
+      setError(getErrorMessage(attendError, "Aanmelden is niet gelukt."));
+    }
+  }
+
   const visible = useMemo(() => {
     const needle = query.trim().toLowerCase();
     return posts.filter((post) => {
       if (filter === "upcoming" && !isUpcoming(post)) return false;
       if (filter === "past" && isUpcoming(post)) return false;
       if (!needle) return true;
-      return (
-        post.title.toLowerCase().includes(needle) ||
-        post.body.toLowerCase().includes(needle) ||
-        (post.author?.username || "").toLowerCase().includes(needle)
-      );
+      return post.title.toLowerCase().includes(needle) || post.body.toLowerCase().includes(needle);
     });
   }, [posts, query, filter]);
 
@@ -71,7 +78,7 @@ export function BoardPage() {
         <div className="min-w-0">
           <h1 className="page-title">Activiteitenbord</h1>
           <p className="mt-1 max-w-xl text-sm text-primary-600 dark:text-primary-200">
-            Tik op een foto om die groter te zien.
+            Vink aan of je erbij bent. Bewoners zien elkaars namen niet.
           </p>
         </div>
         {isEditor ? (
@@ -116,7 +123,13 @@ export function BoardPage() {
       ) : null}
       <div className="grid gap-4 sm:gap-5 md:grid-cols-2">
         {visible.map((post) => (
-          <PostCard key={post.id} post={post} canEdit={isEditor} onDelete={handleDelete} />
+          <PostCard
+            key={post.id}
+            post={post}
+            canEdit={isEditor}
+            onDelete={handleDelete}
+            onAttend={handleAttend}
+          />
         ))}
       </div>
     </section>
