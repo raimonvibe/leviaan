@@ -33,8 +33,6 @@ export function App() {
             <Route path="/berichten/nieuw" element={<PostFormPage />} />
             <Route path="/berichten/:id/bewerken" element={<PostFormPage />} />
             <Route path="/prullenbak" element={<TrashPage />} />
-          </Route>
-          <Route element={<ProtectedRoute creator />}>
             <Route path="/redactie" element={<EditorsPage />} />
           </Route>
         </Route>

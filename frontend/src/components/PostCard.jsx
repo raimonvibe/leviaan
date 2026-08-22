@@ -14,8 +14,12 @@ export function PostCard({ post, canEdit, onDelete, onRestore, onAttend, compact
 
   async function copyLink() {
     const url = `${window.location.origin}/bord?bericht=${post.id}`;
-    await navigator.clipboard.writeText(url);
-    toast.show({ message: "De link staat op je klembord.", duration: 4000 });
+    try {
+      await navigator.clipboard.writeText(url);
+      toast.show({ message: "De link staat op je klembord.", duration: 4000 });
+    } catch {
+      toast.show({ message: "De link kon niet worden gekopieerd.", duration: 4000 });
+    }
   }
 
   return (

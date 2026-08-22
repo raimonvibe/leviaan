@@ -1,14 +1,17 @@
 import { useEffect, useState } from "react";
 import { api, getErrorMessage } from "../api/client.js";
 import { useAuth } from "../contexts/AuthContext.jsx";
+import { useDialog } from "../contexts/DialogContext.jsx";
+import { useToast } from "../contexts/ToastContext.jsx";
 
 export function EditorsPage() {
-  const { setRole } = useAuth();
+  const { user: me, isOwner, setRole } = useAuth();
+  const dialog = useDialog();
+  const toast = useToast();
   const [users, setUsers] = useState([]);
   const [invites, setInvites] = useState([]);
   const [email, setEmail] = useState("");
   const [error, setError] = useState("");
-  const [notice, setNotice] = useState("");
 
   const begeleiders = users.filter((user) => (user.baseRole || user.role) === "editor");
   const bewoners = users.filter((user) => (user.baseRole || user.role) === "visitor");
@@ -26,14 +29,17 @@ export function EditorsPage() {
   async function invite(event) {
     event.preventDefault();
     setError("");
-    setNotice("");
     try {
       const response = await api.post("/editors/invites", { email });
       setEmail("");
       if (response.data.promoted) {
-        setNotice(`${response.data.user.username} is nu begeleider en ziet wie er meedoet.`);
+        toast.show({
+          message: `${response.data.user.username} is nu begeleider en ziet wie er meedoet.`,
+        });
       } else {
-        setNotice("De uitnodiging staat klaar. Na het inloggen is deze persoon begeleider.");
+        toast.show({
+          message: "Uitnodiging is gezet. Met datzelfde Google-e-mailadres wordt deze persoon automatisch begeleider.",
+        });
       }
       await load();
     } catch (inviteError) {
@@ -53,48 +59,69 @@ export function EditorsPage() {
   async function removeUser(user) {
     setError("");
     const name = user.username || "Deze persoon";
-    if (
-      !window.confirm(
-        `${name} wordt van het bord gehaald. Activiteiten die deze persoon plaatste gaan ook weg.`,
-      )
-    ) {
-      return;
-    }
+    const ok = await dialog.confirm({
+      title: "Van het bord halen?",
+      message: `${name} wordt van het bord gehaald. Activiteiten die deze persoon plaatste gaan ook weg.`,
+      confirmLabel: "Van het bord halen",
+      cancelLabel: "Annuleren",
+      danger: true,
+    });
+    if (!ok) return;
     try {
       await api.delete(`/editors/${user.id}`);
-      setNotice(`${name} is van het bord gehaald.`);
+      toast.show({ message: `${name} is van het bord gehaald.` });
       await load();
     } catch (removeError) {
       setError(getErrorMessage(removeError, "Verwijderen is niet gelukt."));
     }
   }
 
-  async function revokeInvite(id) {
+  async function revokeInvite(inviteItem) {
+    setError("");
+    const ok = await dialog.confirm({
+      title: "Uitnodiging intrekken?",
+      message: `De uitnodiging voor ${inviteItem.email} wordt ingetrokken.`,
+      confirmLabel: "Intrekken",
+      cancelLabel: "Annuleren",
+      danger: true,
+    });
+    if (!ok) return;
     try {
-      await api.delete(`/editors/invites/${id}`);
+      await api.delete(`/editors/invites/${inviteItem.id}`);
+      toast.show({ message: "De uitnodiging is ingetrokken." });
       await load();
     } catch (revokeError) {
       setError(getErrorMessage(revokeError));
     }
   }
 
+  function canRemove(user) {
+    return user.id !== me?.id;
+  }
+
   return (
     <section className="space-y-8">
       <div>
-        <p className="text-xs uppercase tracking-[0.2em] text-brick-600 dark:text-accent-300">Beheerder</p>
+        <p className="text-xs uppercase tracking-[0.2em] text-brick-600 dark:text-accent-300">
+          {isOwner ? "Beheerder" : "Begeleiding"}
+        </p>
         <h1 className="page-title mt-1">Beheer</h1>
         <p className="mt-2 max-w-2xl text-primary-600 dark:text-primary-200">
-          Jij ziet alles: activiteiten, wie meedoet en de namen van bewoners. Voeg hier begeleiders
-          toe met hun Google-e-mail. Testers kun je van het bord halen voor de start.
+          Nodig iemand uit met het Google-e-mailadres van die begeleider. Dat adres wordt als
+          begeleider opgeslagen. Logt die persoon daarna in met hetzelfde Google-e-mailadres, dan is
+          die automatisch begeleider. Je mag begeleiders en bewoners van het bord halen. De
+          beheerder niet.
         </p>
-        {notice ? <p className="mt-3 text-sm text-primary-600 dark:text-accent-300">{notice}</p> : null}
         {error ? <p className="note-error mt-3 text-sm">{error}</p> : null}
       </div>
 
       <form onSubmit={invite} className="card rounded-lg p-4 sm:p-6">
         <label className="label" htmlFor="email">
-          E-mail van een begeleider
+          Google-e-mail van een begeleider
         </label>
+        <p className="mb-3 text-sm text-primary-600 dark:text-primary-200">
+          Gebruik het adres waarmee die persoon bij Google inlogt, niet een ander mailadres.
+        </p>
         <div className="flex flex-col gap-3 sm:flex-row">
           <input
             id="email"
@@ -102,11 +129,11 @@ export function EditorsPage() {
             className="input"
             value={email}
             onChange={(event) => setEmail(event.target.value)}
-            placeholder="begeleider@example.com"
+            placeholder="naam@gmail.com"
             required
           />
           <button type="submit" className="btn btn-primary shrink-0">
-            Toevoegen
+            Uitnodigen
           </button>
         </div>
       </form>
@@ -115,13 +142,13 @@ export function EditorsPage() {
         <div className="card rounded-lg p-4 sm:p-6">
           <h2 className="font-serif text-xl text-ink">Nog niet ingelogd</h2>
           <p className="mt-1 text-sm text-primary-600 dark:text-primary-200">
-            Deze uitnodiging wacht tot iemand inlogt met Google.
+            Deze uitnodiging wacht tot iemand inlogt met hetzelfde Google-e-mailadres.
           </p>
           <ul className="mt-4 divide-y divide-primary-100 dark:divide-primary-400">
             {invites.map((inviteItem) => (
               <li key={inviteItem.id} className="flex items-center justify-between gap-4 py-3">
                 <span className="break-all text-ink">{inviteItem.email}</span>
-                <button type="button" className="btn btn-ghost" onClick={() => revokeInvite(inviteItem.id)}>
+                <button type="button" className="btn btn-ghost" onClick={() => revokeInvite(inviteItem)}>
                   Intrekken
                 </button>
               </li>
@@ -133,7 +160,7 @@ export function EditorsPage() {
       <div>
         <h2 className="font-serif text-xl text-ink">Begeleiders</h2>
         <p className="mt-1 text-sm text-primary-600 dark:text-primary-200">
-          Zij mogen plaatsen en zien wie er meedoet.
+          Zij mogen plaatsen en zien wie er meedoet. De beheerder staat hier niet bij.
         </p>
         {begeleiders.length === 0 ? (
           <div className="card mt-4 rounded-lg p-5 text-primary-600 dark:text-primary-200">
@@ -144,10 +171,14 @@ export function EditorsPage() {
             {begeleiders.map((user) => (
               <li key={user.id} className="card rounded-lg p-4">
                 <p className="font-serif text-lg text-ink">{user.username || "Nog geen naam gekozen"}</p>
-                <p className="mt-1 text-sm text-primary-600 dark:text-primary-200">Begeleider · ziet wie meedoet</p>
-                <button type="button" className="btn btn-brick mt-4" onClick={() => removeUser(user)}>
-                  Van het bord halen
-                </button>
+                <p className="mt-1 text-sm text-primary-600 dark:text-primary-200">
+                  {user.id === me?.id ? "Dit ben jij · begeleider" : "Begeleider · ziet wie meedoet"}
+                </p>
+                {canRemove(user) ? (
+                  <button type="button" className="btn btn-brick mt-4" onClick={() => removeUser(user)}>
+                    Van het bord halen
+                  </button>
+                ) : null}
               </li>
             ))}
           </ul>
@@ -157,7 +188,7 @@ export function EditorsPage() {
       <div>
         <h2 className="font-serif text-xl text-ink">Bewoners</h2>
         <p className="mt-1 text-sm text-primary-600 dark:text-primary-200">
-          Zij zien elkaars namen en wie er meedoet.
+          Zij zien elkaars namen en wie er meedoet. Je mag hen van het bord halen.
         </p>
         {bewoners.length === 0 ? (
           <div className="card mt-4 rounded-lg p-5 text-primary-600 dark:text-primary-200">
@@ -168,30 +199,34 @@ export function EditorsPage() {
             {bewoners.map((user) => (
               <li key={user.id} className="flex flex-wrap items-center justify-between gap-3 px-4 py-3 sm:px-5">
                 <p className="font-medium text-ink">{user.username || "Nog geen naam gekozen"}</p>
-                <button type="button" className="btn btn-brick" onClick={() => removeUser(user)}>
-                  Van het bord halen
-                </button>
+                {canRemove(user) ? (
+                  <button type="button" className="btn btn-brick" onClick={() => removeUser(user)}>
+                    Van het bord halen
+                  </button>
+                ) : null}
               </li>
             ))}
           </ul>
         )}
       </div>
 
-      <div className="card rounded-lg p-4 sm:p-6">
-        <h2 className="font-serif text-xl text-ink">Zelf meekijken</h2>
-        <p className="mt-2 text-sm text-primary-600 dark:text-primary-200">
-          Kijk hoe het bord eruitziet voor een begeleider of bewoner. Rechtsboven kun je terug naar
-          beheer.
-        </p>
-        <div className="mt-4 flex flex-wrap gap-2">
-          <button type="button" className="btn btn-secondary" onClick={() => testAs("editor")}>
-            Kijk als begeleider
-          </button>
-          <button type="button" className="btn btn-secondary" onClick={() => testAs("visitor")}>
-            Kijk als bewoner
-          </button>
+      {isOwner ? (
+        <div className="card rounded-lg p-4 sm:p-6">
+          <h2 className="font-serif text-xl text-ink">Zelf meekijken</h2>
+          <p className="mt-2 text-sm text-primary-600 dark:text-primary-200">
+            Kijk hoe het bord eruitziet voor een begeleider of bewoner. Rechtsboven kun je terug naar
+            beheer.
+          </p>
+          <div className="mt-4 flex flex-wrap gap-2">
+            <button type="button" className="btn btn-secondary" onClick={() => testAs("editor")}>
+              Kijk als begeleider
+            </button>
+            <button type="button" className="btn btn-secondary" onClick={() => testAs("visitor")}>
+              Kijk als bewoner
+            </button>
+          </div>
         </div>
-      </div>
+      ) : null}
     </section>
   );
 }

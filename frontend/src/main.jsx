@@ -5,6 +5,7 @@ import { BrowserRouter } from "react-router";
 import { App } from "./App.jsx";
 import { GOOGLE_CLIENT_ID } from "./config.js";
 import { AuthProvider } from "./contexts/AuthContext.jsx";
+import { DialogProvider } from "./contexts/DialogContext.jsx";
 import { ThemeProvider } from "./contexts/ThemeContext.jsx";
 import { ToastProvider } from "./contexts/ToastContext.jsx";
 import "./index.css";
@@ -14,11 +15,13 @@ createRoot(document.getElementById("root")).render(
     <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
       <ThemeProvider>
         <AuthProvider>
-          <ToastProvider>
-            <BrowserRouter>
-              <App />
-            </BrowserRouter>
-          </ToastProvider>
+          <DialogProvider>
+            <ToastProvider>
+              <BrowserRouter>
+                <App />
+              </BrowserRouter>
+            </ToastProvider>
+          </DialogProvider>
         </AuthProvider>
       </ThemeProvider>
     </GoogleOAuthProvider>

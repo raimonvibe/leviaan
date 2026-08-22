@@ -2,9 +2,11 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router";
 import { api, getErrorMessage } from "../api/client.js";
 import { PostCard } from "../components/PostCard.jsx";
+import { useDialog } from "../contexts/DialogContext.jsx";
 import { useToast } from "../contexts/ToastContext.jsx";
 
 export function TrashPage() {
+  const dialog = useDialog();
   const toast = useToast();
   const [posts, setPosts] = useState([]);
   const [error, setError] = useState("");
@@ -39,7 +41,14 @@ export function TrashPage() {
   }
 
   async function wipe(post) {
-    if (!window.confirm(`“${post.title}” voorgoed wissen? Dit kun je daarna niet meer terughalen.`)) return;
+    const ok = await dialog.confirm({
+      title: "Voorgoed wissen?",
+      message: `“${post.title}” wordt voorgoed gewist. Dit kun je daarna niet meer terughalen.`,
+      confirmLabel: "Voorgoed wissen",
+      cancelLabel: "Annuleren",
+      danger: true,
+    });
+    if (!ok) return;
     try {
       await api.delete(`/posts/${post.id}/permanent`);
       setPosts((current) => current.filter((item) => item.id !== post.id));
@@ -50,13 +59,15 @@ export function TrashPage() {
   }
 
   async function emptyTrash() {
-    if (
-      !window.confirm(
-        `Alles in de prullenbak wissen (${posts.length} ${posts.length === 1 ? "activiteit" : "activiteiten"})? Dit kun je daarna niet meer terughalen.`,
-      )
-    ) {
-      return;
-    }
+    const countLabel = posts.length === 1 ? "activiteit" : "activiteiten";
+    const ok = await dialog.confirm({
+      title: "Prullenbak legen?",
+      message: `Alles in de prullenbak wissen (${posts.length} ${countLabel})? Dit kun je daarna niet meer terughalen.`,
+      confirmLabel: "Prullenbak legen",
+      cancelLabel: "Annuleren",
+      danger: true,
+    });
+    if (!ok) return;
     setEmptying(true);
     try {
       await api.delete("/posts/trash");

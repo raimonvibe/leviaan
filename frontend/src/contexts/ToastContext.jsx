@@ -12,7 +12,7 @@ export function ToastProvider({ children }) {
   }, []);
 
   const show = useCallback(
-    ({ message, actionLabel, onAction, duration = 10000 }) => {
+    ({ message, actionLabel, onAction, duration = 6000 }) => {
       if (timer.current) clearTimeout(timer.current);
       setToast({ message, actionLabel, onAction });
       timer.current = setTimeout(hide, duration);
@@ -26,25 +26,27 @@ export function ToastProvider({ children }) {
     <ToastContext.Provider value={value}>
       {children}
       {toast ? (
-        <div className="fixed bottom-[max(1rem,env(safe-area-inset-bottom))] left-1/2 z-50 w-[min(36rem,calc(100%-1.5rem))] -translate-x-1/2 rounded-lg bg-primary-600 px-4 py-3 text-white dark:bg-primary-700 dark:ring-1 dark:ring-primary-400">
-          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-            <p>{toast.message}</p>
-            <div className="flex shrink-0 gap-2">
-              {toast.actionLabel && toast.onAction ? (
-                <button
-                  type="button"
-                  className="rounded-md bg-accent-400 px-3 py-1.5 text-sm font-semibold text-primary-900"
-                  onClick={() => {
-                    toast.onAction();
-                    hide();
-                  }}
-                >
-                  {toast.actionLabel}
+        <div className="pointer-events-none fixed inset-x-0 bottom-[max(1rem,env(safe-area-inset-bottom))] z-50 flex justify-center px-4">
+          <div className="pointer-events-auto card w-full max-w-lg rounded-lg p-4 text-ink shadow-lg sm:p-5">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <p className="text-sm sm:text-base">{toast.message}</p>
+              <div className="flex shrink-0 flex-wrap gap-2">
+                {toast.actionLabel && toast.onAction ? (
+                  <button
+                    type="button"
+                    className="btn btn-primary"
+                    onClick={() => {
+                      toast.onAction();
+                      hide();
+                    }}
+                  >
+                    {toast.actionLabel}
+                  </button>
+                ) : null}
+                <button type="button" className="btn btn-secondary" onClick={hide}>
+                  Sluiten
                 </button>
-              ) : null}
-              <button type="button" className="rounded-md px-2 py-1.5 text-sm hover:bg-white/10" onClick={hide}>
-                Sluiten
-              </button>
+              </div>
             </div>
           </div>
         </div>

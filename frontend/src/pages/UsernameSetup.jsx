@@ -4,9 +4,11 @@ import { getErrorMessage } from "../api/client.js";
 import { Footer } from "../components/Footer.jsx";
 import { Logo } from "../components/Logo.jsx";
 import { useAuth } from "../contexts/AuthContext.jsx";
+import { useToast } from "../contexts/ToastContext.jsx";
 
 export function UsernameSetupPage({ changing = false }) {
   const { isAuthenticated, needsUsername, user, setUsername } = useAuth();
+  const toast = useToast();
   const navigate = useNavigate();
   const [username, setValue] = useState(changing ? user?.username || "" : "");
   const [error, setError] = useState("");
@@ -22,7 +24,10 @@ export function UsernameSetupPage({ changing = false }) {
     setError("");
     try {
       await setUsername(username.trim());
-      if (changing) navigate("/bord");
+      if (changing) {
+        toast.show({ message: "Je naam op het bord is aangepast.", duration: 4000 });
+        navigate("/bord");
+      }
     } catch (submitError) {
       setError(getErrorMessage(submitError, "Deze naam kon niet worden opgeslagen."));
     } finally {

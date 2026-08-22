@@ -1,8 +1,8 @@
 import { NavLink, Outlet } from "react-router";
 import { useAuth } from "../contexts/AuthContext.jsx";
-import { useTheme } from "../contexts/ThemeContext.jsx";
 import { Footer } from "./Footer.jsx";
 import { Logo } from "./Logo.jsx";
+import { ThemeToggle } from "./ThemeToggle.jsx";
 
 const linkClass = ({ isActive }) =>
   `shrink-0 px-3 min-h-11 inline-flex items-center rounded-md text-sm ${
@@ -13,7 +13,6 @@ const linkClass = ({ isActive }) =>
 
 export function Layout() {
   const { user, isEditor, isCreator, isOwner, canSwitchRole, setRole, logout } = useAuth();
-  const { isDark, toggleTheme } = useTheme();
 
   const links = (
     <>
@@ -36,7 +35,7 @@ export function Layout() {
           </NavLink>
         </>
       ) : null}
-      {isCreator ? (
+      {isEditor ? (
         <NavLink to="/redactie" className={linkClass}>
           Beheer
         </NavLink>
@@ -53,14 +52,7 @@ export function Layout() {
           </NavLink>
           <nav className="hidden items-center gap-1 lg:flex">{links}</nav>
           <div className="flex min-w-0 flex-wrap items-center justify-end gap-1">
-            <button
-              type="button"
-              onClick={toggleTheme}
-              className="btn btn-ghost px-3"
-              aria-label={isDark ? "Lichte modus" : "Donkere modus"}
-            >
-              {isDark ? "Licht" : "Donker"}
-            </button>
+            <ThemeToggle />
             {isOwner && !isCreator ? (
               <button
                 type="button"

@@ -1,13 +1,11 @@
 import { Link } from "react-router";
 import { Footer } from "../components/Footer.jsx";
 import { Logo } from "../components/Logo.jsx";
-import { useTheme } from "../contexts/ThemeContext.jsx";
+import { ThemeToggle } from "../components/ThemeToggle.jsx";
 
 const GOOGLE_SIGNUP = "https://accounts.google.com/signup?hl=nl";
 
 export function GoogleAccountPage() {
-  const { isDark, toggleTheme } = useTheme();
-
   return (
     <div className="flex min-h-dvh flex-col">
       <header className="border-b border-primary-200 bg-paper/95 dark:border-primary-400 dark:bg-primary-900/90">
@@ -15,9 +13,7 @@ export function GoogleAccountPage() {
           <Link to="/" aria-label="Naar home">
             <Logo />
           </Link>
-          <button type="button" onClick={toggleTheme} className="btn btn-ghost">
-            {isDark ? "Licht" : "Donker"}
-          </button>
+          <ThemeToggle />
         </div>
       </header>
       <main className="mx-auto w-full max-w-3xl flex-1 px-4 py-8 sm:py-10">

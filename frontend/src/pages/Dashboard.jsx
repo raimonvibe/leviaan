@@ -4,7 +4,7 @@ import { api, getErrorMessage } from "../api/client.js";
 import { useAuth } from "../contexts/AuthContext.jsx";
 
 export function DashboardPage() {
-  const { isEditor, isCreator } = useAuth();
+  const { isEditor } = useAuth();
   const [stats, setStats] = useState(null);
   const [error, setError] = useState("");
 
@@ -64,7 +64,7 @@ export function DashboardPage() {
             </Link>
           </>
         ) : null}
-        {isCreator ? (
+        {isEditor ? (
           <Link to="/redactie" className="btn btn-secondary">
             Begeleiders beheren
           </Link>

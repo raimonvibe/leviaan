@@ -4,9 +4,9 @@ import { Link, Navigate } from "react-router";
 import { getErrorMessage } from "../api/client.js";
 import { Footer } from "../components/Footer.jsx";
 import { Logo } from "../components/Logo.jsx";
+import { ThemeToggle } from "../components/ThemeToggle.jsx";
 import { GOOGLE_CLIENT_ID } from "../config.js";
 import { useAuth } from "../contexts/AuthContext.jsx";
-import { useTheme } from "../contexts/ThemeContext.jsx";
 
 function GoogleMark() {
   return (
@@ -63,7 +63,6 @@ function GoogleSignIn({ onAccessToken, onError }) {
 
 export function LoginPage() {
   const { isAuthenticated, needsUsername, loginWithGoogle } = useAuth();
-  const { isDark, toggleTheme } = useTheme();
   const [error, setError] = useState("");
 
   if (isAuthenticated && needsUsername) return <Navigate to="/welkom" replace />;
@@ -75,9 +74,7 @@ export function LoginPage() {
         <Link to="/" className="min-w-0" aria-label="Naar het begin">
           <Logo />
         </Link>
-        <button type="button" onClick={toggleTheme} className="btn btn-ghost shrink-0">
-          {isDark ? "Licht" : "Donker"}
-        </button>
+        <ThemeToggle />
       </header>
 
       <div className="mx-auto flex w-full max-w-lg flex-1 flex-col justify-center gap-6 px-4 py-4 sm:px-6 lg:max-w-5xl lg:grid lg:grid-cols-2 lg:items-center lg:gap-12 lg:py-10">

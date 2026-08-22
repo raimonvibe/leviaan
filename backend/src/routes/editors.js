@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { query } from "../db.js";
-import { requireAuth, requireCreator, requireUsername } from "../middleware/auth.js";
+import { requireAuth, requireCreator, requireEditor, requireUsername } from "../middleware/auth.js";
 import { isOwnerEmail, toPublicUser } from "../publicUser.js";
 
 const router = Router();
@@ -14,7 +14,7 @@ function normalizeEmail(email) {
   return String(email || "").trim().toLowerCase();
 }
 
-router.use(requireAuth, requireUsername, requireCreator);
+router.use(requireAuth, requireUsername, requireEditor);
 
 router.get("/", async (_req, res) => {
   const [users, invites] = await Promise.all([
@@ -53,17 +53,21 @@ router.post("/invites", async (req, res) => {
     return res.status(400).json({ error: "Vul een geldig e-mailadres in." });
   }
 
-  const existingUser = await query("SELECT id, role, username FROM users WHERE email = $1", [email]);
-  if (email === String(process.env.CREATOR_EMAIL || "").trim().toLowerCase()) {
+  const existingUser = await query(
+    "SELECT id, role, username, base_role FROM users WHERE email = $1",
+    [email],
+  );
+  if (isOwnerEmail(email)) {
     return res.status(400).json({ error: "Dit is het beheerdersaccount." });
   }
 
   if (existingUser.rowCount > 0) {
     const user = existingUser.rows[0];
-    if (user.role === "creator") {
+    const actualRole = user.base_role || user.role;
+    if (user.role === "creator" || actualRole === "creator") {
       return res.status(400).json({ error: "Dit is het beheerdersaccount." });
     }
-    if (user.role === "editor") {
+    if (actualRole === "editor") {
       return res.status(400).json({ error: "Deze persoon is al begeleider." });
     }
     await query("UPDATE users SET role = 'editor', base_role = 'editor' WHERE id = $1", [user.id]);
@@ -100,7 +104,7 @@ router.delete("/invites/:id", async (req, res) => {
   res.json({ ok: true });
 });
 
-router.patch("/:id/role", async (req, res) => {
+router.patch("/:id/role", requireCreator, async (req, res) => {
   const role = String(req.body?.role || "");
   if (!["visitor", "editor"].includes(role)) {
     return res.status(400).json({ error: "Kies bewoner of iemand die mag plaatsen." });
