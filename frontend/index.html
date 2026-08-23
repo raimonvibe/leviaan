@@ -40,6 +40,29 @@
     />
     <meta name="twitter:image" content="https://leviaan.vercel.app/logo-share.jpg" />
 
+    <script>
+      // Zet de donkere modus voordat React laadt, anders flitst het scherm eerst wit.
+      // Zelfde sleutel en zelfde keuze als src/contexts/ThemeContext.jsx.
+      (function () {
+        var stored = null;
+        try {
+          stored = localStorage.getItem("leviaan_theme");
+        } catch (error) {
+          stored = null;
+        }
+        var dark =
+          stored === "dark" ||
+          (stored !== "light" && window.matchMedia("(prefers-color-scheme: dark)").matches);
+        if (!dark) return;
+        document.documentElement.classList.add("dark");
+        document.documentElement.style.colorScheme = "dark";
+        var themeColor = document.querySelector('meta[name="theme-color"]');
+        if (themeColor) themeColor.setAttribute("content", "#0b1f3a");
+        var colorScheme = document.querySelector('meta[name="color-scheme"]');
+        if (colorScheme) colorScheme.setAttribute("content", "dark");
+      })();
+    </script>
+
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link

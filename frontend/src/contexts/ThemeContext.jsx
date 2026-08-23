@@ -15,19 +15,46 @@ function applyChrome(theme) {
   if (colorScheme) colorScheme.setAttribute("content", dark ? "dark" : "light");
 }
 
+// What to show before anyone touches the switch: the choice from last time if
+// there is one, otherwise whatever the phone or laptop already prefers.
+function firstTheme() {
+  try {
+    const stored = localStorage.getItem(THEME_KEY);
+    if (stored === "dark" || stored === "light") {
+      return stored;
+    }
+  } catch {
+    // Private mode can refuse storage. The system preference still works.
+  }
+  return window.matchMedia?.("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+}
+
+function remember(theme) {
+  try {
+    localStorage.setItem(THEME_KEY, theme);
+  } catch {
+    // Nothing to remember with. The switch still works for this visit.
+  }
+}
+
 export function ThemeProvider({ children }) {
-  const [theme, setTheme] = useState("light");
+  const [theme, setTheme] = useState(firstTheme);
 
   useEffect(() => {
     applyChrome(theme);
-    localStorage.setItem(THEME_KEY, theme);
   }, [theme]);
 
   const value = useMemo(
     () => ({
       theme,
       isDark: theme === "dark",
-      toggleTheme: () => setTheme((current) => (current === "dark" ? "light" : "dark")),
+      // Only a real choice is written down, so the system preference keeps
+      // working for anybody who never touches the switch.
+      toggleTheme: () => {
+        const next = theme === "dark" ? "light" : "dark";
+        remember(next);
+        setTheme(next);
+      },
     }),
     [theme],
   );
