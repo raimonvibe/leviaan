@@ -1,20 +1,14 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { api } from "../api/client.js";
-import { TOKEN_KEY } from "../config.js";
 
 const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
-  const [token, setToken] = useState(() => localStorage.getItem(TOKEN_KEY));
   const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(Boolean(token));
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!token) {
-      setUser(null);
-      setLoading(false);
-      return;
-    }
+    localStorage.removeItem("leviaan_token");
 
     let cancelled = false;
     api
@@ -23,11 +17,7 @@ export function AuthProvider({ children }) {
         if (!cancelled) setUser(response.data.user);
       })
       .catch(() => {
-        if (!cancelled) {
-          localStorage.removeItem(TOKEN_KEY);
-          setToken(null);
-          setUser(null);
-        }
+        if (!cancelled) setUser(null);
       })
       .finally(() => {
         if (!cancelled) setLoading(false);
@@ -36,7 +26,7 @@ export function AuthProvider({ children }) {
     return () => {
       cancelled = true;
     };
-  }, [token]);
+  }, []);
 
   const refreshUser = useCallback(async () => {
     const response = await api.get("/auth/me");
@@ -61,10 +51,8 @@ export function AuthProvider({ children }) {
         setUser(response.data.user);
         return response.data.user;
       },
-      async loginWithGoogle({ credential, accessToken } = {}) {
-        const response = await api.post("/auth/google", { credential, accessToken });
-        localStorage.setItem(TOKEN_KEY, response.data.token);
-        setToken(response.data.token);
+      async loginWithGoogle({ credential } = {}) {
+        const response = await api.post("/auth/google", { credential });
         setUser(response.data.user);
         return response.data;
       },
@@ -73,9 +61,12 @@ export function AuthProvider({ children }) {
         setUser(response.data.user);
         return response.data.user;
       },
-      logout() {
-        localStorage.removeItem(TOKEN_KEY);
-        setToken(null);
+      async logout() {
+        try {
+          await api.post("/auth/logout");
+        } catch {
+          // Local state still clears so the screen goes back to login.
+        }
         setUser(null);
       },
     }),

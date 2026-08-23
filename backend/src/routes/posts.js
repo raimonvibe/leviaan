@@ -2,6 +2,7 @@ import { Router } from "express";
 import { query } from "../db.js";
 import { requireAuth, requireEditor, requireUsername } from "../middleware/auth.js";
 import { toPublicUser } from "../publicUser.js";
+import { stripUnsafe } from "../sanitize.js";
 
 const router = Router();
 const MAX_IMAGE_CHARS = 1_800_000;
@@ -75,10 +76,10 @@ async function withAttendance(rows, user) {
 }
 
 function validatePost({ title, body, activityDate, activityEndDate, imageData, requireImage }) {
-  const cleanTitle = String(title || "").trim();
-  const cleanBody = String(body || "").trim();
-  const cleanStart = String(activityDate || "").trim();
-  const cleanEnd = String(activityEndDate || activityDate || "").trim();
+  const cleanTitle = stripUnsafe(title).trim();
+  const cleanBody = stripUnsafe(body).trim();
+  const cleanStart = stripUnsafe(activityDate).trim();
+  const cleanEnd = stripUnsafe(activityEndDate || activityDate).trim();
   const cleanImage = imageData == null || imageData === "" ? null : String(imageData);
 
   if (cleanTitle.length < 2 || cleanTitle.length > 160) {

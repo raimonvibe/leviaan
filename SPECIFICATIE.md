@@ -23,10 +23,11 @@ flowchart TD
   C --> F[Google OAuth]
   F --> G{E-mail geverifieerd?}
   G -->|nee| C
-  G -->|ja| H{Wie is dit?}
+  G -->|ja| H{Staat dit adres op de lijst?}
+  H -->|nee, nieuw account| X[403 geen toegang]
   H -->|CREATOR_EMAIL| I[rol creator]
-  H -->|open invite of al editor| J[rol editor]
-  H -->|anders| K[rol visitor]
+  H -->|editor-invite of al editor| J[rol editor]
+  H -->|visitor-invite of al bewoner| K[rol visitor]
   I --> L{username?}
   J --> L
   K --> L
@@ -48,12 +49,13 @@ flowchart TD
 
 | # | Flow | Start | Resultaat |
 | --- | --- | --- | --- |
-| A | Eerste bezoek | `/inloggen` | Google → username → bord |
+| A | Eerste bezoek | `/inloggen` | Google → alleen als e-mail op de lijst staat → username → bord |
 | B | Terugkeren | bestaande JWT | `/bord` (of `/welkom` als naam ontbreekt) |
 | C | Beheerder-login | `CREATOR_EMAIL` | altijd `creator` + `base_role=creator` |
-| D | Begeleider uitnodigen | Beheer, Google-e-mail | rij in `editor_invites` of directe promotie |
-| E | Uitgenodigde logt in | zelfde Google-e-mail | automatisch `editor` |
-| F | Bewoner wordt begeleider | bestaande visitor + invite | `role` en `base_role` → `editor` |
+| D | Begeleider uitnodigen | Beheer, Google-e-mail | rij in `editor_invites` (`role=editor`) of directe promotie |
+| D2 | Bewoner toevoegen | Beheer, Google-e-mail | rij in `editor_invites` (`role=visitor`) |
+| E | Uitgenodigde logt in | zelfde Google-e-mail | automatisch `editor` of `visitor` volgens de invite |
+| F | Bewoner wordt begeleider | bestaande visitor + editor-invite | `role` en `base_role` → `editor` |
 | G | Activiteit plaatsen | `/berichten/nieuw` | kaart op het bord + toast |
 | H | Meedoen | vinkje op kaart | rij in `attendances`; namen zichtbaar voor iedereen |
 | I | Soft-delete | Verwijderen op bord | `deleted_at` gezet + undo-toast |
@@ -75,7 +77,7 @@ Er zijn drie **echte** rollen in de database. De beheerder is geen “super-edit
 
 | Sleutel | Nederlandse naam | `role` / `base_role` | Hoe je het wordt |
 | --- | --- | --- | --- |
-| Bewoner | Bewoner | `visitor` | Google-login zonder invite |
+| Bewoner | Bewoner | `visitor` | e-mail toegevoegd op Beheer + inloggen met **hetzelfde** Google-adres, of bestaand account |
 | Begeleider | Begeleider | `editor` | uitnodiging + inloggen met **hetzelfde** Google-e-mailadres, of directe promotie als die persoon al bestaat |
 | Beheerder | Beheerder | `creator` | e-mail === `CREATOR_EMAIL` bij elke login |
 
@@ -91,7 +93,7 @@ Er zijn drie **echte** rollen in de database. De beheerder is geen “super-edit
 | Eigen naam wijzigen | ja | ja | ja |
 | Activiteit plaatsen / bewerken | nee | ja | ja |
 | Soft-delete + prullenbak | nee | ja | ja |
-| Andere begeleider uitnodigen | nee | ja | ja |
+| E-mail van bewoner of begeleider toevoegen | nee | ja | ja |
 | Begeleider of bewoner van het bord halen | nee | ja | ja |
 | Beheerder verwijderen of demoten | nee | nee | nee |
 | “Zelf meekijken” als begeleider/bewoner | nee | nee | ja |
@@ -186,6 +188,7 @@ erDiagram
   editor_invites {
     int id PK
     string email UK
+    string role "visitor of editor"
     int invited_by FK
   }
   posts {
@@ -247,21 +250,22 @@ Providers (buitenste → binnenste): GoogleOAuth → Theme → Auth → Dialog �
 3. Frontend `POST /api/auth/google` met `{ accessToken }` (oude `{ credential }` ID-token blijft werken).
 4. Backend haalt Google-profiel op, eist verified e-mail, normaliseert e-mail naar lowercase.
 5. Zoekt user op `google_id` **of** `email`.
-6. Nieuwe user: `role` en `base_role` via `resolveRole`:
+6. Nieuwe user: alleen als het adres op de lijst staat. `role` en `base_role` via `resolveRole`:
    - e-mail = `CREATOR_EMAIL` → `creator`
-   - anders rij in `editor_invites` → `editor`
-   - anders → `visitor`
-7. Bestaande user:
+   - `editor_invites.role = editor` → `editor`
+   - `editor_invites.role = visitor` → `visitor`
+   - geen invite en geen bestaand account → **403**, geen user aanmaken
+7. Bestaande user (staat al in `users`):
    - `CREATOR_EMAIL` forceert altijd `creator`
    - `base_role === editor` forceert `role` terug naar `editor` (meekijken als bewoner overleeft **herlogin niet**)
-   - `visitor` mag via invite alsnog `editor` worden
-8. Invite-rij wordt verwijderd als de user nu `editor` of `creator` is.
+   - `visitor` mag via editor-invite alsnog `editor` worden
+8. Invite-rij wordt verwijderd na een geslaagde login.
 9. JWT + private user terug. Token in `localStorage`.
 10. Geen username → `/welkom`. Wel username → `/bord`.
 
-Fouten (inline op de loginpagina, geen OS-popup): Google weigert, te veel pogingen, ongeldige client.
+Fouten (inline op de loginpagina, geen OS-popup): Google weigert, te veel pogingen, ongeldige client, e-mail niet op de lijst.
 
-**Te toetsen:** inloggen met het **exacte** Google-adres van de uitnodiging; een ander Gmail-adres van dezelfde persoon wordt bewoner.
+**Te toetsen:** onbekend Google-adres krijgt 403 en geen account; inloggen met het **exacte** Google-adres van de uitnodiging; een ander Gmail-adres van dezelfde persoon wordt geweigerd.
 
 ### B. Gebruikersnaam kiezen en wijzigen
 
@@ -271,33 +275,38 @@ Fouten (inline op de loginpagina, geen OS-popup): Google weigert, te veel poging
 
 **Te toetsen:** botsende namen; naam wijzigen als bewoner én als begeleider.
 
-### C. Begeleider uitnodigen (Beheer)
+### C. Begeleider of bewoner toevoegen (Beheer)
 
 Wie: huidige rol `editor` of `creator`. Pagina `/redactie`.
 
-1. Uitleg op de pagina: Google-e-mail uitnodigen → adres als begeleider opgeslagen → inloggen met **hetzelfde** adres → automatisch begeleider.
-2. `POST /api/editors/invites` `{ email }`.
+1. Uitleg op de pagina: alleen adressen op deze lijst mogen inloggen. Google-e-mail toevoegen als bewoner of begeleider → inloggen met **hetzelfde** adres.
+2. `POST /api/editors/invites` `{ email, role }` met `role` = `visitor` of `editor` (standaard `editor`).
 3. Weigeringen:
    - ongeldig e-mail
    - `CREATOR_EMAIL` / bestaande `creator`
    - persoon is al begeleider (`base_role` of `role` = `editor`)
-   - invite bestaat al (`23505` → 409)
-4. Bestaande **bewoner**: meteen `role` en `base_role` = `editor`, invite weg, `{ promoted: true }`. Toast: *X is nu begeleider…*
-5. Nog geen account: rij in `editor_invites`. Toast: *Uitnodiging is gezet…*
-6. Openstaande invites: e-mail zichtbaar op Beheer; **Intrekken** via site-dialoog, daarna toast.
+   - `role=visitor` en persoon is al bewoner
+   - dezelfde invite bestaat al (`409`)
+   - adres staat al open als begeleider en je wilt bewoner toevoegen (`400`)
+4. Bestaande **bewoner** + `role=editor`: meteen `role` en `base_role` = `editor`, invite weg, `{ promoted: true }`. Toast: *X is nu begeleider…*
+5. Openstaande bewoner-invite + daarna begeleider: invite wordt `editor`, `{ upgraded: true }`.
+6. Nog geen account: rij in `editor_invites` met die `role`. Toast volgens bewoner of begeleider.
+7. Openstaande invites: e-mail + rol zichtbaar op Beheer; **Intrekken** via site-dialoog, daarna toast.
 
-**Te toetsen:** begeleider nodigt tweede begeleider uit; beheerder nodigt uit; uitnodigen van de beheerder faalt; intrekken vóór login.
+**Te toetsen:** begeleider voegt bewoner toe; begeleider nodigt tweede begeleider uit; beheerder nodigt uit; uitnodigen van de beheerder faalt; onbekend adres kan niet inloggen; intrekken vóór login.
 
-### D. Automatisch begeleider bij inloggen
+### D. Automatisch begeleider of bewoner bij inloggen
 
-Twee paden, zelfde resultaat (`editor` + invite weg):
+Drie paden, invite weg na login:
 
 | Situatie | Wat er gebeurt |
 | --- | --- |
-| Nieuw Google-account, e-mail staat in `editor_invites` | insert user als `editor` |
-| Bestaande bewoner, daarna invite (of invite daarna login) | update naar `editor` |
+| Nieuw Google-account, `editor_invites.role = editor` | insert user als `editor` |
+| Nieuw Google-account, `editor_invites.role = visitor` | insert user als `visitor` |
+| Bestaande bewoner, daarna editor-invite (of invite daarna login) | update naar `editor` |
+| Nieuw Google-account, geen invite, geen `CREATOR_EMAIL` | **403**, geen user |
 
-**Te toetsen:** uitnodigen → uitloggen als testdoos → inloggen met dát Gmail → menu toont Plaatsen, Prullenbak, Beheer.
+**Te toetsen:** uitnodigen → uitloggen als testdoos → inloggen met dát Gmail → juiste rol; vreemd Gmail-adres blijft buiten.
 
 ### E. Begeleider of bewoner van het bord halen
 
@@ -306,7 +315,7 @@ Twee paden, zelfde resultaat (`editor` + invite weg):
 3. Site-dialoog (geen `window.confirm`): naam + *activiteiten die deze persoon plaatste gaan ook weg*.
 4. `DELETE /api/editors/:id`.
 5. Blokkades: eigen id; `role`/`base_role` `creator`; `isOwnerEmail`.
-6. Invite voor dat e-mailadres wordt ook verwijderd. User-delete cascadet posts.
+6. Invite voor dat e-mailadres wordt ook verwijderd. User-delete cascadet posts. Daarna kan dit adres niet meer inloggen tot het opnieuw wordt toegevoegd.
 
 **Te toetsen:** begeleider verwijdert andere begeleider; begeleider verwijdert bewoner; poging beheerder te verwijderen (API 400); jezelf verwijderen (400).
 
@@ -438,7 +447,7 @@ Basis: `{VITE_API_URL}/api`. JSON. Foutvorm: `{ error: "Nederlandse zin" }`.
 | POST | `/posts/:id/attend` | JWT + username | | meedoen |
 | DELETE | `/posts/:id/attend` | JWT + username | | afmelden |
 | GET | `/editors` | editor | | users + invites (Beheer) |
-| POST | `/editors/invites` | editor | | uitnodigen |
+| POST | `/editors/invites` | editor | `{ email, role }` | bewoner of begeleider toevoegen |
 | DELETE | `/editors/invites/:id` | editor | | intrekken |
 | PATCH | `/editors/:id/role` | **creator** | geen demote editor→visitor | zelden via UI |
 | DELETE | `/editors/:id` | editor | niet self, niet owner | van bord halen |
@@ -460,7 +469,7 @@ Publieke user (op posts, Beheer-lijsten): `id`, `username`, `role` — **geen e-
 | Uitnodigings-e-mail | alleen Beheer, openstaande invites |
 | Username | bord (auteur), meedoen-lijst, begeleiders, bewoners, Beheer |
 | Beheerder in begeleiderslijst | nee (uitgesloten op e-mail) |
-| Foto’s / titels / teksten | alle ingelogde users met username |
+| Foto’s / titels / teksten | alleen ingelogde users met username (geen openbare login) |
 | Soft-deleted posts | alleen editor/creator in prullenbak |
 
 ---
@@ -472,8 +481,9 @@ Gebruik dit om te zien of de live app overeenkomt met deze spec.
 ### Login en rollen
 
 - [ ] `CREATOR_EMAIL` wordt bij elke login beheerder, ook na meekijken
-- [ ] Uitnodiging + **zelfde** Google-e-mail → automatisch begeleider
-- [ ] Ander Google-adres → bewoner
+- [ ] Uitnodiging + **zelfde** Google-e-mail → automatisch begeleider of bewoner
+- [ ] Ander / onbekend Google-adres → 403, geen account
+- [ ] Begeleider kan een bewoner-e-mail toevoegen
 - [ ] Begeleider kan een tweede begeleider uitnodigen
 - [ ] Begeleider kan begeleiders en bewoners verwijderen
 - [ ] Beheerder is niet te verwijderen (UI + API)
@@ -527,4 +537,4 @@ npm run dev
 - Site: http://localhost:5173  
 - API: http://localhost:3000/health  
 
-Testdoos: twee Google-accounts. Eén = `CREATOR_EMAIL`. De ander uitnodigen op Beheer en opnieuw inloggen.
+Testdoos: twee Google-accounts. Eén = `CREATOR_EMAIL`. De ander eerst als bewoner of begeleider op Beheer zetten en opnieuw inloggen. Een derde, niet toegevoegd adres moet buiten blijven.

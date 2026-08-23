@@ -40,6 +40,7 @@ export function PrivacyPage() {
             <ul className="mt-2 list-disc space-y-1 pl-5 leading-relaxed">
               <li>Je Google-inlog, zodat we weten dat jij het bent</li>
               <li>Je e-mailadres, alleen voor je account</li>
+              <li>Je inlogsessie, zodat je niet steeds opnieuw hoeft in te loggen</li>
               <li>De naam die jij kiest. Die kun je later wijzigen</li>
               <li>Activiteiten: foto, tekst en datum</li>
               <li>Of je hebt gezegd dat je meedoet</li>
@@ -49,9 +50,9 @@ export function PrivacyPage() {
           <section className="card rounded-lg p-5">
             <h2 className="font-serif text-xl">Wat zien anderen?</h2>
             <p className="mt-2 leading-relaxed">
-              Bewoners en begeleiders zien elkaars namen op het bord, bijvoorbeeld wie meedoet. Op
-              het overzicht kun je tikken op Begeleiders of Bewoners om de namen te zien. Je
-              e-mailadres blijft geheim.
+              Alleen mensen van het huis zien het bord. Bewoners en begeleiders zien elkaars namen,
+              bijvoorbeeld wie meedoet. Op het overzicht kun je tikken op Begeleiders of Bewoners
+              om de namen te zien. Je e-mailadres blijft geheim.
             </p>
           </section>
 
@@ -59,16 +60,19 @@ export function PrivacyPage() {
             <h2 className="font-serif text-xl">Inloggen met Google</h2>
             <p className="mt-2 leading-relaxed">
               Je komt binnen met je Google-account. Wij krijgen van Google een bevestiging, geen
-              wachtwoord. Google heeft een eigen privacybeleid.
+              wachtwoord. Die bevestiging controleren we op onze server. Niet iedereen met Google
+              kan binnenkomen: alleen e-mailadressen die de beheerder of een begeleider op Beheer
+              heeft gezet. Zo blijven activiteiten van het huis privé. Google heeft een eigen
+              privacybeleid.
             </p>
           </section>
 
           <section className="card rounded-lg p-5">
             <h2 className="font-serif text-xl">Foto’s</h2>
             <p className="mt-2 leading-relaxed">
-              Een foto hoort bij de activiteit, zodat iedereen die kan zien. Alleen mensen die
-              mogen plaatsen kunnen een foto toevoegen of weghalen. Wat van het bord gaat, staat
-              eerst in de prullenbak.
+              Een foto hoort bij de activiteit, zodat iedereen in huis die kan zien. Alleen mensen
+              die mogen plaatsen kunnen een foto toevoegen of weghalen. Wat van het bord gaat,
+              staat eerst in de prullenbak.
             </p>
           </section>
         </div>

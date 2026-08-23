@@ -4,6 +4,7 @@ import express from "express";
 import rateLimit from "express-rate-limit";
 import helmet from "helmet";
 import { initSchema } from "./db.js";
+import { allowedOriginsFromEnv } from "./sanitize.js";
 import authRoutes from "./routes/auth.js";
 import editorRoutes from "./routes/editors.js";
 import postRoutes from "./routes/posts.js";
@@ -11,11 +12,7 @@ import statsRoutes from "./routes/stats.js";
 
 const app = express();
 const port = Number(process.env.PORT) || 3000;
-const frontendUrl = process.env.FRONTEND_URL || "http://localhost:5173";
-const allowedOrigins = frontendUrl
-  .split(",")
-  .map((value) => value.trim())
-  .filter(Boolean);
+const allowedOrigins = allowedOriginsFromEnv(process.env.FRONTEND_URL || "http://localhost:5173");
 
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
@@ -23,6 +20,14 @@ const authLimiter = rateLimit({
   standardHeaders: "draft-7",
   legacyHeaders: false,
   message: { error: "Te veel inlogpogingen. Wacht even en probeer opnieuw." },
+});
+
+const writeLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 40,
+  standardHeaders: "draft-7",
+  legacyHeaders: false,
+  message: { error: "Even rustig aan. Probeer het zo opnieuw." },
 });
 
 app.set("trust proxy", 1);
@@ -35,7 +40,11 @@ app.use(
 app.use(
   cors({
     origin(origin, callback) {
-      if (!origin || allowedOrigins.includes(origin)) {
+      if (origin && allowedOrigins.includes(origin)) {
+        callback(null, true);
+        return;
+      }
+      if (!origin) {
         callback(null, true);
         return;
       }
@@ -45,6 +54,19 @@ app.use(
   }),
 );
 app.use(express.json({ limit: "2mb" }));
+app.use((req, res, next) => {
+  if (["GET", "HEAD", "OPTIONS"].includes(req.method)) {
+    return next();
+  }
+  const origin = req.headers.origin;
+  if (origin && allowedOrigins.includes(origin)) {
+    return next();
+  }
+  if (!origin && process.env.NODE_ENV !== "production") {
+    return next();
+  }
+  return res.status(403).json({ error: "Deze aanvraag is niet toegestaan." });
+});
 app.use(
   rateLimit({
     windowMs: 15 * 60 * 1000,
@@ -54,6 +76,8 @@ app.use(
   }),
 );
 app.use("/api/auth/google", authLimiter);
+app.use("/api/auth/username", writeLimiter);
+app.use("/api/editors/invites", writeLimiter);
 
 app.get("/health", (_req, res) => {
   res.json({ ok: true, service: "leviaan-campus" });
@@ -65,6 +89,9 @@ app.use("/api/editors", editorRoutes);
 app.use("/api/stats", statsRoutes);
 
 app.use((error, _req, res, _next) => {
+  if (error?.type === "entity.parse.failed" || error?.status === 400) {
+    return res.status(400).json({ error: "Deze aanvraag is ongeldig." });
+  }
   console.error(error);
   res.status(500).json({ error: "Er ging iets mis. Probeer het later opnieuw." });
 });
