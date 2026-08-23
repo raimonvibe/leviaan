@@ -2,7 +2,7 @@ import jwt from "jsonwebtoken";
 import { query } from "../db.js";
 import { logWarn } from "../log.js";
 import { isEditorRole, toPrivateUser } from "../publicUser.js";
-import { readSessionToken } from "../session.js";
+import { readSessionTokens } from "../session.js";
 
 function requestPath(req) {
   return String(req.originalUrl || req.path || "").split("?")[0];
@@ -21,34 +21,37 @@ export function signToken(user) {
 }
 
 export async function requireAuth(req, res, next) {
-  try {
-    const token = readSessionToken(req);
+  const tokens = readSessionTokens(req);
 
-    if (!token) {
-      if (!isQuietAuthCheck(req)) {
-        logWarn("auth.session", { outcome: "missing", method: req.method, path: requestPath(req) });
-      }
-      return res.status(401).json({ error: "Je bent niet ingelogd." });
+  if (tokens.length === 0) {
+    if (!isQuietAuthCheck(req)) {
+      logWarn("auth.session", { outcome: "missing", method: req.method, path: requestPath(req) });
     }
-
-    const payload = jwt.verify(token, process.env.JWT_SECRET, { algorithms: ["HS256"] });
-    const result = await query(
-      "SELECT id, google_id, email, username, role, base_role, created_at FROM users WHERE id = $1",
-      [payload.sub],
-    );
-    const user = result.rows[0];
-
-    if (!user) {
-      logWarn("auth.session", { outcome: "unknown_user", method: req.method, path: requestPath(req) });
-      return res.status(401).json({ error: "Sessie is niet meer geldig." });
-    }
-
-    req.user = user;
-    next();
-  } catch {
-    logWarn("auth.session", { outcome: "invalid", method: req.method, path: requestPath(req) });
-    return res.status(401).json({ error: "Sessie is niet meer geldig." });
+    return res.status(401).json({ error: "Je bent niet ingelogd." });
   }
+
+  let outcome = "invalid";
+  for (const token of [...tokens].reverse()) {
+    try {
+      const payload = jwt.verify(token, process.env.JWT_SECRET, { algorithms: ["HS256"] });
+      const result = await query(
+        "SELECT id, google_id, email, username, role, base_role, created_at FROM users WHERE id = $1",
+        [payload.sub],
+      );
+      const user = result.rows[0];
+      if (!user) {
+        outcome = "unknown_user";
+        continue;
+      }
+      req.user = user;
+      return next();
+    } catch {
+      outcome = "invalid";
+    }
+  }
+
+  logWarn("auth.session", { outcome, method: req.method, path: requestPath(req) });
+  return res.status(401).json({ error: "Sessie is niet meer geldig." });
 }
 
 export function requireUsername(req, res, next) {

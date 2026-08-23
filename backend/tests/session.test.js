@@ -51,8 +51,14 @@ describe("the session", () => {
     assert.ok(cookie, "no session cookie was set");
     assert.match(cookie, /HttpOnly/i, "the cookie is readable from JavaScript");
     assert.match(cookie, /Secure/i);
-    assert.match(cookie, /SameSite=None/i);
+    assert.match(cookie, /SameSite=Lax/i);
     assert.match(cookie, /Path=\//i);
+    assert.doesNotMatch(cookie, /Partitioned/i);
+    assert.doesNotMatch(cookie, /SameSite=None/i);
+    assert.ok(
+      response.setCookies.some((line) => /Max-Age=0/i.test(line) && /SameSite=None/i.test(line)),
+      "the old third-party cookie was not cleared",
+    );
   });
 
   test("later calls ride on the cookie", async () => {
@@ -191,6 +197,19 @@ describe("the session", () => {
     assert.equal(posted.status, 403);
 
     assert.equal((await client.get("/api/editors")).status, 403);
+  });
+
+  test("an old leftover session cookie does not block a valid one", async () => {
+    const { client } = await signInAs(context, { role: "editor" });
+    const good = client.sessionCookie;
+    const stale = encodeURIComponent(jwt.sign({ sub: 1, role: "editor" }, "not-the-board-secret-0123456789abcdef", { algorithm: "HS256" }));
+
+    const guest = context.client();
+    const me = await guest.get("/api/auth/me", {
+      headers: { Cookie: `${SESSION_COOKIE}=${stale}; ${SESSION_COOKIE}=${good}` },
+    });
+
+    assert.equal(me.status, 200);
   });
 
   test("signing in again replaces the session instead of stacking cookies", async () => {
