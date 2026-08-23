@@ -24,11 +24,27 @@ function fileNameFromAlt(alt, type) {
   return `${base || "foto"}.${ext}`;
 }
 
-async function fileFromSrc(src, alt) {
-  const response = await fetch(src);
-  const blob = await response.blob();
-  const type = blob.type && blob.type !== "text/plain" ? blob.type : "image/jpeg";
-  return new File([blob], fileNameFromAlt(alt, type), { type });
+function bytesFromBase64(base64) {
+  const binary = atob(base64);
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i += 1) {
+    bytes[i] = binary.charCodeAt(i);
+  }
+  return bytes;
+}
+
+function fileFromSrc(src, alt) {
+  const comma = src.indexOf(",");
+  if (!src.startsWith("data:") || comma < 0) {
+    throw new Error("Deze foto kon niet worden bewaard.");
+  }
+  const header = src.slice(5, comma);
+  const payload = src.slice(comma + 1);
+  const type = header.split(";")[0] || "image/jpeg";
+  const bytes = header.includes(";base64")
+    ? bytesFromBase64(payload.replace(/\s/g, ""))
+    : new TextEncoder().encode(decodeURIComponent(payload));
+  return new File([bytes], fileNameFromAlt(alt, type), { type });
 }
 
 function canShareFile(file) {
@@ -131,7 +147,7 @@ export function Lightbox({ src, alt = "", onClose }) {
     setSaving(true);
     setSaveError("");
     try {
-      const file = await fileFromSrc(src, alt);
+      const file = fileFromSrc(src, alt);
       if (prefersShareSheet() && canShareFile(file)) {
         try {
           await navigator.share({ files: [file], title: alt || "Foto" });
