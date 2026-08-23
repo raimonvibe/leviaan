@@ -168,4 +168,26 @@ body {
   .chip-row::-webkit-scrollbar {
     display: none;
   }
+
+  /* Google first paints a rounded "Continue with Google" button, then swaps in
+     the square "Continue as…" button. Keep both versions the same soft corners
+     and stretch them to the card, so the left and right edges stay even. */
+  .google-signin {
+    overflow: hidden;
+    border-radius: 0.75rem;
+  }
+
+  .google-signin,
+  .google-signin > div {
+    max-width: 100%;
+  }
+
+  .google-signin iframe,
+  .google-signin [role="button"],
+  .google-signin .nsm7Bb-HzV7m-LgbsSe {
+    box-sizing: border-box !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    border-radius: 0.75rem !important;
+  }
 }
