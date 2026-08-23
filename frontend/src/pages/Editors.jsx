@@ -5,13 +5,73 @@ import { useAuth } from "../contexts/AuthContext.jsx";
 import { useDialog } from "../contexts/DialogContext.jsx";
 import { useToast } from "../contexts/ToastContext.jsx";
 
+function InviteBox({
+  eyebrow,
+  title,
+  help,
+  label,
+  inputId,
+  email,
+  onEmailChange,
+  onSubmit,
+  buttonLabel,
+  buttonClass,
+  pending,
+  pendingHelp,
+  onRevoke,
+  error,
+}) {
+  return (
+    <form onSubmit={onSubmit} className="card flex flex-col rounded-lg p-4 sm:p-6">
+      <p className="text-xs uppercase tracking-[0.2em] text-brick-600 dark:text-accent-300">{eyebrow}</p>
+      <h2 className="font-serif mt-1 text-xl text-ink">{title}</h2>
+      <p className="mt-2 text-sm text-primary-600 dark:text-primary-200">{help}</p>
+      <label className="label mt-5" htmlFor={inputId}>
+        {label}
+      </label>
+      <input
+        id={inputId}
+        type="email"
+        className="input"
+        value={email}
+        onChange={(event) => onEmailChange(event.target.value)}
+        placeholder="naam@gmail.com"
+        autoComplete="off"
+        required
+      />
+      <button type="submit" className={`btn mt-3 w-full sm:w-auto ${buttonClass}`}>
+        {buttonLabel}
+      </button>
+      {error ? <p className="note-error mt-3 text-sm">{error}</p> : null}
+      {pending.length > 0 ? (
+        <div className="mt-6 border-t border-primary-100 pt-4 dark:border-primary-400">
+          <p className="text-sm text-primary-600 dark:text-primary-200">{pendingHelp}</p>
+          <ul className="mt-3 divide-y divide-primary-100 dark:divide-primary-400">
+            {pending.map((inviteItem) => (
+              <li key={inviteItem.id} className="flex items-center justify-between gap-3 py-3">
+                <span className="min-w-0 break-all text-ink">{inviteItem.email}</span>
+                <button type="button" className="btn btn-ghost shrink-0" onClick={() => onRevoke(inviteItem)}>
+                  Intrekken
+                </button>
+              </li>
+            ))}
+          </ul>
+        </div>
+      ) : null}
+    </form>
+  );
+}
+
 export function EditorsPage() {
   const { user: me, isOwner, isEditor, setRole } = useAuth();
   const dialog = useDialog();
   const toast = useToast();
   const [users, setUsers] = useState([]);
   const [invites, setInvites] = useState([]);
-  const [email, setEmail] = useState("");
+  const [residentEmail, setResidentEmail] = useState("");
+  const [staffEmail, setStaffEmail] = useState("");
+  const [residentError, setResidentError] = useState("");
+  const [staffError, setStaffError] = useState("");
   const [error, setError] = useState("");
 
   const begeleiders = users.filter((user) => {
@@ -22,6 +82,8 @@ export function EditorsPage() {
     const actual = user.baseRole || user.role;
     return actual === "visitor";
   });
+  const pendingBewoners = invites.filter((item) => item.role !== "editor");
+  const pendingBegeleiders = invites.filter((item) => item.role === "editor");
 
   async function load() {
     const response = await api.get("/editors");
@@ -34,18 +96,22 @@ export function EditorsPage() {
     load().catch((loadError) => setError(getErrorMessage(loadError)));
   }, [isEditor]);
 
-  async function invite(role) {
+  async function invite(role, rawEmail) {
+    const setFormError = role === "editor" ? setStaffError : setResidentError;
+    const clearEmail = role === "editor" ? setStaffEmail : setResidentEmail;
     setError("");
-    if (!email.trim()) {
-      setError("Vul een geldig e-mailadres in.");
+    setResidentError("");
+    setStaffError("");
+    if (!rawEmail.trim()) {
+      setFormError("Vul het Google-e-mailadres in.");
       return;
     }
     try {
-      const response = await api.post("/editors/invites", { email, role });
-      setEmail("");
+      const response = await api.post("/editors/invites", { email: rawEmail, role });
+      clearEmail("");
       if (response.data.promoted) {
         toast.show({
-          message: `${response.data.user.username} is nu begeleider en ziet wie er meedoet.`,
+          message: `${response.data.user.username} is nu begeleider en mag kaarten ophangen.`,
         });
       } else if (response.data.upgraded) {
         toast.show({
@@ -53,16 +119,16 @@ export function EditorsPage() {
         });
       } else if (role === "editor") {
         toast.show({
-          message: "Uitnodiging is gezet. Met datzelfde Google-e-mailadres wordt deze persoon automatisch begeleider.",
+          message: "Begeleider is uitgenodigd. Die persoon logt in met dit Google-adres.",
         });
       } else {
         toast.show({
-          message: "E-mail is toegevoegd. Met datzelfde Google-adres kan deze bewoner inloggen.",
+          message: "Bewoner is toegevoegd. Die persoon kan nu inloggen met dit Google-adres.",
         });
       }
       await load();
     } catch (inviteError) {
-      setError(getErrorMessage(inviteError));
+      setFormError(getErrorMessage(inviteError));
     }
   }
 
@@ -133,71 +199,56 @@ export function EditorsPage() {
         </p>
         <h1 className="page-title mt-1">Beheer</h1>
         <p className="mt-2 max-w-2xl text-primary-600 dark:text-primary-200">
-          Alleen mensen op deze lijst kunnen inloggen. Zet hier het Google-e-mailadres van een
-          bewoner of begeleider. Activiteiten van het huis blijven zo privé. Uitleg over een
-          account staat bij{" "}
+          Alleen mensen die jij hier zet, kunnen inloggen. Bewoners kijken mee. Begeleiders mogen
+          ook kaarten ophangen. Nog geen Google-account?{" "}
           <Link to="/google-account" className="underline decoration-accent-400 underline-offset-4">
-            Hoe maak ik een Google-account?
+            Zo maak je er een
           </Link>
           .
         </p>
         {error ? <p className="note-error mt-3 text-sm">{error}</p> : null}
       </div>
 
-      <form
-        onSubmit={(event) => {
-          event.preventDefault();
-          invite("visitor");
-        }}
-        className="card rounded-lg p-4 sm:p-6"
-      >
-        <label className="label" htmlFor="email">
-          Google-e-mail van iemand uit het huis
-        </label>
-        <div className="flex flex-col gap-3">
-          <input
-            id="email"
-            type="email"
-            className="input"
-            value={email}
-            onChange={(event) => setEmail(event.target.value)}
-            placeholder="naam@gmail.com"
-            required
-          />
-          <div className="flex flex-col gap-3 sm:flex-row">
-            <button type="submit" className="btn btn-secondary">
-              Bewoner toevoegen
-            </button>
-            <button type="button" className="btn btn-primary" onClick={() => invite("editor")}>
-              Begeleider uitnodigen
-            </button>
-          </div>
-        </div>
-      </form>
-
-      {invites.length > 0 ? (
-        <div className="card rounded-lg p-4 sm:p-6">
-          <h2 className="font-serif text-xl text-ink">Nog niet ingelogd</h2>
-          <p className="mt-1 text-sm text-primary-600 dark:text-primary-200">
-            Wacht tot deze persoon inlogt met hetzelfde Google-adres.
-          </p>
-          <ul className="mt-4 divide-y divide-primary-100 dark:divide-primary-400">
-            {invites.map((inviteItem) => (
-              <li key={inviteItem.id} className="flex items-center justify-between gap-4 py-3">
-                <div className="min-w-0">
-                  <span className="break-all text-ink">{inviteItem.email}</span>
-                  <p className="mt-1 text-sm text-primary-600 dark:text-primary-200">
-                    {inviteItem.role === "editor" ? "Wordt begeleider" : "Wordt bewoner"}
-                  </p>
-                </div>
-                <button type="button" className="btn btn-ghost shrink-0" onClick={() => revokeInvite(inviteItem)}>
-                  Intrekken
-                </button>
-              </li>
-            ))}
-          </ul>
-        </div>
-      ) : null}
+      <div className="grid gap-4 lg:grid-cols-2">
+        <InviteBox
+          eyebrow="Bewoners"
+          title="Bewoner toevoegen"
+          help="Typ het Google-adres van een bewoner. Daarna kan die persoon inloggen en het bord zien."
+          label="Google-e-mail van de bewoner"
+          inputId="resident-email"
+          email={residentEmail}
+          onEmailChange={setResidentEmail}
+          onSubmit={(event) => {
+            event.preventDefault();
+            invite("visitor", residentEmail);
+          }}
+          buttonLabel="Bewoner toevoegen"
+          buttonClass="btn-secondary"
+          pending={pendingBewoners}
+          pendingHelp="Deze bewoner is al toegevoegd en moet nog inloggen."
+          onRevoke={revokeInvite}
+          error={residentError}
+        />
+        <InviteBox
+          eyebrow="Begeleiding"
+          title="Begeleider uitnodigen"
+          help="Typ het Google-adres van een begeleider. Die persoon mag daarna ook activiteiten plaatsen."
+          label="Google-e-mail van de begeleider"
+          inputId="staff-email"
+          email={staffEmail}
+          onEmailChange={setStaffEmail}
+          onSubmit={(event) => {
+            event.preventDefault();
+            invite("editor", staffEmail);
+          }}
+          buttonLabel="Begeleider uitnodigen"
+          buttonClass="btn-primary"
+          pending={pendingBegeleiders}
+          pendingHelp="Deze begeleider is al uitgenodigd en moet nog inloggen."
+          onRevoke={revokeInvite}
+          error={staffError}
+        />
+      </div>
 
       <div>
         <h2 className="font-serif text-xl text-ink">Begeleiders</h2>
@@ -232,7 +283,7 @@ export function EditorsPage() {
         </p>
         {bewoners.length === 0 ? (
           <div className="card mt-4 rounded-lg p-5 text-primary-600 dark:text-primary-200">
-            Nog geen bewoner. Voeg hierboven een Google-e-mail toe.
+            Nog geen bewoner. Gebruik de kaart Bewoner toevoegen hierboven.
           </div>
         ) : (
           <ul className="card mt-4 divide-y divide-primary-100 overflow-hidden rounded-lg dark:divide-primary-400">
