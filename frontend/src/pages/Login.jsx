@@ -1,5 +1,5 @@
 import { GoogleLogin } from "@react-oauth/google";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link, Navigate } from "react-router";
 import { getErrorMessage } from "../api/client.js";
 import { Footer } from "../components/Footer.jsx";
@@ -9,35 +9,64 @@ import { GOOGLE_CLIENT_ID } from "../config.js";
 import { useAuth } from "../contexts/AuthContext.jsx";
 
 function GoogleSignIn({ onCredential, onError }) {
+  const boxRef = useRef(null);
   const [busy, setBusy] = useState(false);
+  const [width, setWidth] = useState(0);
+
+  useEffect(() => {
+    const box = boxRef.current;
+    if (!box) return undefined;
+
+    function measure() {
+      const next = Math.min(400, Math.floor(box.getBoundingClientRect().width));
+      if (next > 0) setWidth(next);
+    }
+
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(box);
+    window.addEventListener("orientationchange", measure);
+    return () => {
+      observer.disconnect();
+      window.removeEventListener("orientationchange", measure);
+    };
+  }, []);
 
   return (
-    <div className="space-y-3">
-      <div className="flex justify-center">
-        <GoogleLogin
-          locale="nl"
-          text="continue_with"
-          theme="outline"
-          size="large"
-          shape="rectangular"
-          width="336"
-          useOneTap={false}
-          onSuccess={async (response) => {
-            if (!response.credential) {
-              onError("Inloggen is niet gelukt.");
-              return;
-            }
-            try {
-              setBusy(true);
-              await onCredential(response.credential);
-            } catch (loginError) {
-              onError(getErrorMessage(loginError, "Inloggen is niet gelukt."));
-            } finally {
-              setBusy(false);
-            }
-          }}
-          onError={() => onError("Google kon niet worden geopend.")}
-        />
+    <div className="w-full min-w-0 space-y-3">
+      <div
+        ref={boxRef}
+        className="flex w-full min-w-0 justify-center overflow-hidden [&_div]:max-w-full [&_iframe]:max-w-full"
+      >
+        {width > 0 ? (
+          <GoogleLogin
+            key={width}
+            locale="nl"
+            text="continue_with"
+            theme="outline"
+            size="large"
+            shape="rectangular"
+            width={String(width)}
+            useOneTap={false}
+            onSuccess={async (response) => {
+              if (!response.credential) {
+                onError("Inloggen is niet gelukt.");
+                return;
+              }
+              try {
+                setBusy(true);
+                await onCredential(response.credential);
+              } catch (loginError) {
+                onError(getErrorMessage(loginError, "Inloggen is niet gelukt."));
+              } finally {
+                setBusy(false);
+              }
+            }}
+            onError={() => onError("Google kon niet worden geopend.")}
+          />
+        ) : (
+          <div className="h-12 w-full" aria-hidden="true" />
+        )}
       </div>
       {busy ? <p className="muted text-center text-sm">Even geduld…</p> : null}
     </div>
@@ -72,7 +101,7 @@ export function LoginPage() {
           </p>
         </div>
 
-        <div className="card order-1 w-full min-w-0 rounded-lg p-4 text-ink sm:p-6 lg:order-2 lg:p-7">
+        <div className="card order-1 w-full min-w-0 overflow-hidden rounded-lg p-4 text-ink sm:p-6 lg:order-2 lg:p-7">
           <h1 className="font-serif text-2xl text-ink sm:text-3xl">Inloggen</h1>
           <p className="muted mt-1 text-sm">
             Alleen mensen van het huis kunnen binnenkomen. Jouw Google-adres moet eerst op de lijst
