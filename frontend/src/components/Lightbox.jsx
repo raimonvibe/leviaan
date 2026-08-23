@@ -13,9 +13,55 @@ function pointerDistance(a, b) {
   return Math.hypot(a.x - b.x, a.y - b.y);
 }
 
+function fileNameFromAlt(alt, type) {
+  const ext = type.includes("png") ? "png" : type.includes("webp") ? "webp" : type.includes("gif") ? "gif" : "jpg";
+  const base = String(alt || "foto")
+    .normalize("NFKD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^\w]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 60);
+  return `${base || "foto"}.${ext}`;
+}
+
+async function fileFromSrc(src, alt) {
+  const response = await fetch(src);
+  const blob = await response.blob();
+  const type = blob.type && blob.type !== "text/plain" ? blob.type : "image/jpeg";
+  return new File([blob], fileNameFromAlt(alt, type), { type });
+}
+
+function canShareFile(file) {
+  try {
+    return Boolean(navigator.canShare?.({ files: [file] }));
+  } catch {
+    return false;
+  }
+}
+
+function prefersShareSheet() {
+  const touchPoints = Number(navigator.maxTouchPoints || 0);
+  if (touchPoints > 0) return true;
+  return Boolean(window.matchMedia?.("(any-pointer: coarse)")?.matches);
+}
+
+function downloadFile(file) {
+  const url = URL.createObjectURL(file);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = file.name;
+  link.rel = "noopener";
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  window.setTimeout(() => URL.revokeObjectURL(url), 1500);
+}
+
 export function Lightbox({ src, alt = "", onClose }) {
   const [scale, setScale] = useState(1);
   const [offset, setOffset] = useState({ x: 0, y: 0 });
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState("");
   const viewportRef = useRef(null);
   const pointersRef = useRef(new Map());
   const pinchRef = useRef(null);
@@ -80,6 +126,29 @@ export function Lightbox({ src, alt = "", onClose }) {
     [resetZoom, zoomFrom],
   );
 
+  const savePhoto = useCallback(async () => {
+    if (!src || saving) return;
+    setSaving(true);
+    setSaveError("");
+    try {
+      const file = await fileFromSrc(src, alt);
+      if (prefersShareSheet() && canShareFile(file)) {
+        try {
+          await navigator.share({ files: [file], title: alt || "Foto" });
+          return;
+        } catch (error) {
+          if (error?.name === "AbortError") return;
+        }
+      }
+      downloadFile(file);
+    } catch (error) {
+      if (error?.name === "AbortError") return;
+      setSaveError("De foto kon niet worden bewaard.");
+    } finally {
+      setSaving(false);
+    }
+  }, [alt, saving, src]);
+
   useEffect(() => {
     function onKey(event) {
       if (event.key === "Escape") {
@@ -122,14 +191,20 @@ export function Lightbox({ src, alt = "", onClose }) {
     return () => viewport.removeEventListener("wheel", onWheel);
   }, [zoomBy]);
 
+  function capturePointer(event) {
+    if (!event.currentTarget.hasPointerCapture?.(event.pointerId)) {
+      event.currentTarget.setPointerCapture(event.pointerId);
+    }
+  }
+
   function onPointerDown(event) {
     if (event.pointerType === "mouse" && event.button !== 0) return;
     movedRef.current = false;
     startedOnImageRef.current = Boolean(event.target.closest("img"));
     pointersRef.current.set(event.pointerId, { x: event.clientX, y: event.clientY });
-    event.currentTarget.setPointerCapture(event.pointerId);
 
     if (pointersRef.current.size === 2) {
+      capturePointer(event);
       const [a, b] = [...pointersRef.current.values()];
       pinchRef.current = {
         distance: pointerDistance(a, b) || 1,
@@ -141,6 +216,7 @@ export function Lightbox({ src, alt = "", onClose }) {
     }
 
     if (scaleRef.current > 1) {
+      capturePointer(event);
       panRef.current = {
         x: event.clientX,
         y: event.clientY,
@@ -155,6 +231,7 @@ export function Lightbox({ src, alt = "", onClose }) {
     pointersRef.current.set(event.pointerId, { x: event.clientX, y: event.clientY });
 
     if (pointersRef.current.size >= 2 && pinchRef.current) {
+      capturePointer(event);
       const [a, b] = [...pointersRef.current.values()];
       const dist = pointerDistance(a, b);
       const mid = { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 };
@@ -167,7 +244,10 @@ export function Lightbox({ src, alt = "", onClose }) {
     if (!panRef.current || scaleRef.current <= 1) return;
     const dx = event.clientX - panRef.current.x;
     const dy = event.clientY - panRef.current.y;
-    if (Math.abs(dx) > 3 || Math.abs(dy) > 3) movedRef.current = true;
+    if (Math.abs(dx) > 3 || Math.abs(dy) > 3) {
+      movedRef.current = true;
+      capturePointer(event);
+    }
     setOffset({
       x: panRef.current.ox + dx,
       y: panRef.current.oy + dy,
@@ -198,6 +278,15 @@ export function Lightbox({ src, alt = "", onClose }) {
     onClose();
   }
 
+  function onPointerCancel(event) {
+    pointersRef.current.delete(event.pointerId);
+    if (pointersRef.current.size < 2) pinchRef.current = null;
+    if (pointersRef.current.size === 0) {
+      panRef.current = null;
+      movedRef.current = true;
+    }
+  }
+
   if (!src) return null;
 
   const zoomed = scale > 1;
@@ -224,29 +313,31 @@ export function Lightbox({ src, alt = "", onClose }) {
 
       <div
         ref={viewportRef}
-        className={`relative min-h-0 flex-1 touch-none overflow-hidden ${zoomed ? "cursor-grab" : "cursor-zoom-in"}`}
+        className={`relative min-h-0 flex-1 overflow-hidden ${zoomed ? "touch-none cursor-grab" : "cursor-zoom-in"}`}
         onPointerDown={onPointerDown}
         onPointerMove={onPointerMove}
         onPointerUp={onPointerUp}
-        onPointerCancel={onPointerUp}
+        onPointerCancel={onPointerCancel}
         onClick={(event) => event.stopPropagation()}
       >
         <img
           src={src}
           alt={alt}
           draggable={false}
-          className="absolute left-1/2 top-1/2 max-h-[calc(100%-0.5rem)] max-w-[calc(100%-1.5rem)] rounded-md object-contain select-none"
+          className={`absolute left-1/2 top-1/2 max-h-[calc(100%-0.5rem)] max-w-[calc(100%-1.5rem)] rounded-md object-contain ${
+            zoomed ? "touch-none select-none" : "photo-keep"
+          }`}
           style={{
             transform: `translate(calc(-50% + ${offset.x}px), calc(-50% + ${offset.y}px)) scale(${scale})`,
           }}
         />
       </div>
 
-      <div className="flex shrink-0 flex-col items-center gap-2 px-3 pt-2 sm:px-6">
-        <p className="text-center text-xs text-white/80 sm:text-sm">
+      <div className="flex shrink-0 flex-col items-center gap-2 px-3 pt-2 tight:gap-1 tight:pt-1 sm:px-6">
+        <p className="text-center text-xs text-white/80 tight:hidden sm:text-sm">
           Tik twee keer, knijp of gebruik de knoppen om in te zoomen.
         </p>
-        <div className="flex flex-wrap items-center justify-center gap-2">
+        <div className="flex max-w-full flex-wrap items-center justify-center gap-2">
           <button
             type="button"
             className="btn min-w-12 bg-white/90 text-lg text-primary-800"
@@ -270,7 +361,11 @@ export function Lightbox({ src, alt = "", onClose }) {
               Passend
             </button>
           ) : null}
+          <button type="button" className="btn bg-white/90 text-primary-800" onClick={savePhoto} disabled={saving}>
+            {saving ? "Bewaren…" : "Bewaren"}
+          </button>
         </div>
+        {saveError ? <p className="text-center text-sm text-accent-200">{saveError}</p> : null}
       </div>
     </div>
   );

@@ -6,6 +6,13 @@
    without overlap: iPad landscape, 11" tablets, 1366×768 laptops. */
 @custom-variant short (@media (max-height: 56rem));
 
+/* Folded phones and very short covers: keep the photo, hide extra text. */
+@custom-variant tight {
+  @media (max-width: 24.5rem), (max-height: 32rem) {
+    @slot;
+  }
+}
+
 @theme {
   --font-sans: "Source Sans 3", ui-sans-serif, system-ui, sans-serif;
   --font-serif: "Source Serif 4", ui-serif, Georgia, "Times New Roman", serif;
@@ -184,5 +191,13 @@ body {
 
   .google-signin iframe {
     background: transparent;
+  }
+
+  /* Lets iPhone and Android keep the native “save photo” menu on a still press. */
+  .photo-keep {
+    -webkit-touch-callout: default;
+    -webkit-user-select: auto;
+    user-select: auto;
+    touch-action: manipulation;
   }
 }
