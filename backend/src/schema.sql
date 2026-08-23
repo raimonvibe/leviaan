@@ -24,7 +24,8 @@ CREATE TABLE IF NOT EXISTS posts (
   body TEXT NOT NULL,
   activity_date DATE NOT NULL,
   image_data TEXT,
-  author_id INTEGER NOT NULL REFERENCES users(id) ON DELETE RESTRICT,
+  author_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
+  author_name VARCHAR(32),
   created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
@@ -60,9 +61,11 @@ CREATE TABLE IF NOT EXISTS attendances (
 CREATE INDEX IF NOT EXISTS idx_posts_deleted_at ON posts (deleted_at);
 CREATE INDEX IF NOT EXISTS idx_attendances_user_id ON attendances (user_id);
 
+ALTER TABLE posts ADD COLUMN IF NOT EXISTS author_name VARCHAR(32);
+ALTER TABLE posts ALTER COLUMN author_id DROP NOT NULL;
 ALTER TABLE posts DROP CONSTRAINT IF EXISTS posts_author_id_fkey;
 ALTER TABLE posts ADD CONSTRAINT posts_author_id_fkey
-  FOREIGN KEY (author_id) REFERENCES users(id) ON DELETE CASCADE;
+  FOREIGN KEY (author_id) REFERENCES users(id) ON DELETE SET NULL;
 
 ALTER TABLE users ADD COLUMN IF NOT EXISTS base_role VARCHAR(20);
 UPDATE users SET base_role = role WHERE base_role IS NULL;

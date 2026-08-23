@@ -144,10 +144,13 @@ export function EditorsPage() {
   async function removeUser(user) {
     setError("");
     const name = user.username || "Deze persoon";
+    const isStaff = (user.baseRole || user.role) === "editor";
     const ok = await dialog.confirm({
-      title: "Van het bord halen?",
-      message: `${name} wordt van het bord gehaald en kan daarna niet meer inloggen. Activiteiten die deze persoon plaatste gaan ook weg.`,
-      confirmLabel: "Van het bord halen",
+      title: isStaff ? "Begeleider van het bord halen?" : "Bewoner van het bord halen?",
+      message: isStaff
+        ? `${name} is begeleider. Die persoon kan daarna niet meer inloggen of kaarten ophangen.\n\nKaarten die deze persoon ophing blijven op het bord.`
+        : `${name} is bewoner. Die persoon kan daarna niet meer meekijken op het bord.`,
+      confirmLabel: isStaff ? "Ja, begeleider verwijderen" : "Ja, bewoner verwijderen",
       cancelLabel: "Annuleren",
       danger: true,
     });

@@ -26,8 +26,8 @@ function mapPost(row, extras = {}) {
     deletedAt: row.deleted_at,
     author: toPublicUser({
       id: row.author_id,
-      username: row.author_username,
-      role: row.author_role,
+      username: row.author_username || row.author_name || "Voormalige begeleider",
+      role: row.author_role || "editor",
     }),
     attending: Boolean(extras.attending),
     attendeeCount: extras.attendeeCount,
@@ -127,13 +127,14 @@ const postSelect = `
     p.activity_end_date,
     p.image_data,
     p.author_id,
+    p.author_name,
     p.created_at,
     p.updated_at,
     p.deleted_at,
     u.username AS author_username,
     u.role AS author_role
   FROM posts p
-  JOIN users u ON u.id = p.author_id
+  LEFT JOIN users u ON u.id = p.author_id
 `;
 
 router.get("/", requireAuth, requireUsername, async (req, res) => {

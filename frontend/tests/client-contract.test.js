@@ -107,6 +107,30 @@ describe("the page keeps nothing", () => {
     assert.doesNotMatch(login, /localStorage/, "the login page touches localStorage");
   });
 
+  test("nothing pops a system dialog", () => {
+    for (const file of sourceFiles()) {
+      const source = withoutComments(fs.readFileSync(file, "utf8"));
+      assert.doesNotMatch(
+        source,
+        /\bwindow\.(alert|confirm|prompt)\s*\(/,
+        `${path.relative(frontendDir, file)} uses a system popup`,
+      );
+    }
+  });
+
+  test("editors confirm in the site dialog before removing someone", () => {
+    const editors = withoutComments(read("pages/Editors.jsx"));
+    const removeFn = editors.slice(editors.indexOf("function removeUser"), editors.indexOf("function revokeInvite"));
+
+    assert.match(removeFn, /dialog\.confirm\(/);
+    assert.ok(
+      removeFn.indexOf("dialog.confirm") < removeFn.indexOf("api.delete"),
+      "the delete ran before the site dialog",
+    );
+    assert.match(removeFn, /Ja, begeleider verwijderen/);
+    assert.match(removeFn, /Ja, bewoner verwijderen/);
+  });
+
   test("nothing talks to the API around the shared client", () => {
     for (const file of sourceFiles()) {
       if (file.endsWith(path.join("api", "client.js"))) continue;

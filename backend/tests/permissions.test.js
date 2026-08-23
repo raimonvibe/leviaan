@@ -274,6 +274,26 @@ describe("who may do what", () => {
     }
   });
 
+  test("taking a begeleider off the board keeps their activities", async () => {
+    const owner = await signInAs(context, { role: "creator" });
+    const begeleider = await signInAs(context, { role: "editor", username: "Anna" });
+    const created = await begeleider.client.post("/api/posts", newPost({ title: "Tuinfeest" }));
+    assert.equal(created.status, 201);
+    const postId = created.body.post.id;
+    const target = await findUserByEmail(begeleider.email);
+
+    const removed = await owner.client.delete(`/api/editors/${target.id}`);
+    assert.equal(removed.status, 200);
+    assert.equal(await findUserByEmail(begeleider.email), null);
+
+    const board = await owner.client.get("/api/posts");
+    assert.equal(board.status, 200);
+    const kept = board.body.posts.find((post) => post.id === postId);
+    assert.ok(kept, "the activity disappeared with the begeleider");
+    assert.equal(kept.title, "Tuinfeest");
+    assert.equal(kept.author.username, "Anna");
+  });
+
   test("a begeleider may take a bewoner off the board", async () => {
     const begeleider = await signInAs(context, { role: "editor" });
     const bewoner = await signInAs(context, { role: "visitor" });

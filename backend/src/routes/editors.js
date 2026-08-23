@@ -177,6 +177,12 @@ router.delete("/:id", async (req, res) => {
     return res.status(400).json({ error: "De beheerder kan niet worden verwijderd." });
   }
 
+  await query(
+    `UPDATE posts
+     SET author_name = COALESCE(author_name, $1)
+     WHERE author_id = $2`,
+    [person.username, id],
+  );
   if (person.email) {
     await query("DELETE FROM editor_invites WHERE email = $1", [person.email]);
   }
