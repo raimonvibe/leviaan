@@ -44,15 +44,8 @@ function fileFromSrc(src, alt) {
   const bytes = header.includes(";base64")
     ? bytesFromBase64(payload.replace(/\s/g, ""))
     : new TextEncoder().encode(decodeURIComponent(payload));
-  return new File([bytes], fileNameFromAlt(alt, type), { type });
-}
-
-function canShareFile(file) {
-  try {
-    return Boolean(navigator.canShare?.({ files: [file] }));
-  } catch {
-    return false;
-  }
+  const blob = new Blob([bytes], { type });
+  return new File([blob], fileNameFromAlt(alt, type), { type });
 }
 
 function prefersShareSheet() {
@@ -71,6 +64,16 @@ function downloadFile(file) {
   link.click();
   link.remove();
   window.setTimeout(() => URL.revokeObjectURL(url), 1500);
+}
+
+function openPhotoForSaving(file) {
+  const url = URL.createObjectURL(file);
+  const tab = window.open(url, "_blank", "noopener");
+  if (!tab) {
+    downloadFile(file);
+    return;
+  }
+  window.setTimeout(() => URL.revokeObjectURL(url), 60_000);
 }
 
 export function Lightbox({ src, alt = "", onClose }) {
@@ -148,13 +151,17 @@ export function Lightbox({ src, alt = "", onClose }) {
     setSaveError("");
     try {
       const file = fileFromSrc(src, alt);
-      if (prefersShareSheet() && canShareFile(file)) {
+      if (typeof navigator.share === "function" && prefersShareSheet()) {
         try {
           await navigator.share({ files: [file], title: alt || "Foto" });
           return;
         } catch (error) {
           if (error?.name === "AbortError") return;
         }
+      }
+      if (prefersShareSheet()) {
+        openPhotoForSaving(file);
+        return;
       }
       downloadFile(file);
     } catch (error) {
@@ -309,7 +316,7 @@ export function Lightbox({ src, alt = "", onClose }) {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex flex-col bg-primary-900/90 pt-[max(0.75rem,env(safe-area-inset-top))] pb-[max(0.75rem,env(safe-area-inset-bottom))]"
+      className="fixed inset-x-0 top-0 z-50 flex h-[100svh] max-h-[100dvh] flex-col bg-primary-900/90 pt-[max(0.75rem,env(safe-area-inset-top))] pb-[max(0.75rem,env(safe-area-inset-bottom))]"
       onClick={(event) => {
         if (event.target === event.currentTarget) onClose();
       }}
@@ -317,7 +324,15 @@ export function Lightbox({ src, alt = "", onClose }) {
       aria-modal="true"
       aria-label="Foto groter bekijken"
     >
-      <div className="flex shrink-0 justify-end px-3 sm:px-6">
+      <div className="flex shrink-0 items-center justify-between gap-2 px-3 sm:px-6">
+        <button
+          type="button"
+          className="rounded-md bg-white/90 px-3 py-2 text-sm font-medium text-primary-800"
+          onClick={savePhoto}
+          disabled={saving}
+        >
+          {saving ? "Bewaren…" : "Bewaren"}
+        </button>
         <button
           type="button"
           className="rounded-md bg-white/90 px-3 py-2 text-sm font-medium text-primary-800"
@@ -377,9 +392,6 @@ export function Lightbox({ src, alt = "", onClose }) {
               Passend
             </button>
           ) : null}
-          <button type="button" className="btn bg-white/90 text-primary-800" onClick={savePhoto} disabled={saving}>
-            {saving ? "Bewaren…" : "Bewaren"}
-          </button>
         </div>
         {saveError ? <p className="text-center text-sm text-accent-200">{saveError}</p> : null}
       </div>
