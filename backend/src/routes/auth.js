@@ -3,6 +3,7 @@ import { query } from "../db.js";
 import { verifyGoogleIdToken } from "../googleVerify.js";
 import { currentUserPayload, requireAuth, requireUsername, signToken } from "../middleware/auth.js";
 import { isOwnerEmail } from "../publicUser.js";
+import { logError, logInfo, logWarn } from "../log.js";
 import { cleanEmail, stripUnsafe } from "../sanitize.js";
 import { clearSessionCookie, setSessionCookie } from "../session.js";
 
@@ -60,6 +61,7 @@ router.post("/google", async (req, res) => {
   try {
     const credential = req.body?.credential;
     if (!credential) {
+      logWarn("auth.login", { outcome: "denied", reason: "missing_credential" });
       return res.status(400).json({ error: "Google-inlog ontbreekt." });
     }
 
@@ -68,6 +70,7 @@ router.post("/google", async (req, res) => {
     const email = cleanEmail(payload?.email);
 
     if (!payload || !googleId || !email || !isVerifiedEmail(payload.email_verified)) {
+      logWarn("auth.login", { outcome: "denied", reason: "google_unverified", email });
       return res.status(401).json({ error: "Google kon dit account niet bevestigen." });
     }
 
@@ -81,6 +84,7 @@ router.post("/google", async (req, res) => {
     if (!user) {
       const role = await resolveRole(email);
       if (!role) {
+        logWarn("auth.login", { outcome: "denied", reason: "not_on_list", email });
         return res.status(403).json({
           error:
             "Dit e-mailadres staat niet op de lijst van het huis. Vraag een begeleider of de beheerder om je toe te voegen.",
@@ -124,12 +128,13 @@ router.post("/google", async (req, res) => {
     await query("DELETE FROM editor_invites WHERE email = $1", [email]);
 
     setSessionCookie(res, signToken(user));
+    logInfo("auth.login", { outcome: "ok", userId: user.id, role: user.role, email });
     return res.json({
       user: currentUserPayload(user),
       suggestedUsername: !user.username ? usernameFromGoogle(payload) : null,
     });
   } catch (error) {
-    console.error("Google login failed:", error?.message || "unknown error");
+    logError("auth.login", { outcome: "error", reason: "exception", err: error?.message });
     return res.status(401).json({ error: "Inloggen met Google is niet gelukt." });
   }
 });

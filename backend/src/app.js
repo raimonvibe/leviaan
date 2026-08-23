@@ -2,6 +2,7 @@ import cors from "cors";
 import express from "express";
 import rateLimit from "express-rate-limit";
 import helmet from "helmet";
+import { logError, logWarn } from "./log.js";
 import { allowedOriginsFromEnv } from "./sanitize.js";
 import authRoutes from "./routes/auth.js";
 import editorRoutes from "./routes/editors.js";
@@ -65,6 +66,7 @@ export function createApp({ rateLimits = true } = {}) {
     if (!origin && process.env.NODE_ENV !== "production") {
       return next();
     }
+    logWarn("http.origin", { outcome: "denied", origin: String(origin || "").slice(0, 120) });
     return res.status(403).json({ error: "Deze aanvraag is niet toegestaan." });
   });
   if (rateLimits) {
@@ -90,11 +92,16 @@ export function createApp({ rateLimits = true } = {}) {
   app.use("/api/editors", editorRoutes);
   app.use("/api/stats", statsRoutes);
 
-  app.use((error, _req, res, _next) => {
+  app.use((error, req, res, _next) => {
     if (error?.type === "entity.parse.failed" || error?.status === 400) {
       return res.status(400).json({ error: "Deze aanvraag is ongeldig." });
     }
-    console.error(error);
+    logError("http.crash", {
+      method: req.method,
+      path: req.path,
+      err: error?.message,
+      code: error?.code,
+    });
     res.status(500).json({ error: "Er ging iets mis. Probeer het later opnieuw." });
   });
 

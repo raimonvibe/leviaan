@@ -1,7 +1,16 @@
 import jwt from "jsonwebtoken";
 import { query } from "../db.js";
+import { logWarn } from "../log.js";
 import { isEditorRole, toPrivateUser } from "../publicUser.js";
 import { readSessionToken } from "../session.js";
+
+function requestPath(req) {
+  return String(req.originalUrl || req.path || "").split("?")[0];
+}
+
+function isQuietAuthCheck(req) {
+  return requestPath(req) === "/api/auth/me";
+}
 
 export function signToken(user) {
   return jwt.sign(
@@ -16,6 +25,9 @@ export async function requireAuth(req, res, next) {
     const token = readSessionToken(req);
 
     if (!token) {
+      if (!isQuietAuthCheck(req)) {
+        logWarn("auth.session", { outcome: "missing", method: req.method, path: requestPath(req) });
+      }
       return res.status(401).json({ error: "Je bent niet ingelogd." });
     }
 
@@ -27,12 +39,14 @@ export async function requireAuth(req, res, next) {
     const user = result.rows[0];
 
     if (!user) {
+      logWarn("auth.session", { outcome: "unknown_user", method: req.method, path: requestPath(req) });
       return res.status(401).json({ error: "Sessie is niet meer geldig." });
     }
 
     req.user = user;
     next();
   } catch {
+    logWarn("auth.session", { outcome: "invalid", method: req.method, path: requestPath(req) });
     return res.status(401).json({ error: "Sessie is niet meer geldig." });
   }
 }
