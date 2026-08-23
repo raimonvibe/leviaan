@@ -48,7 +48,7 @@ function GoogleSignIn({ onCredential, onError }) {
       <div ref={boxRef} className="google-signin">
         {width > 0 ? (
           <GoogleLogin
-            key={`${theme}-${width}`}
+            key={theme}
             locale="nl"
             text="continue_with"
             theme={theme}
