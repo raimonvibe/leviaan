@@ -6,6 +6,13 @@ import { useAuth } from "../contexts/AuthContext.jsx";
 import { useDialog } from "../contexts/DialogContext.jsx";
 import { useToast } from "../contexts/ToastContext.jsx";
 
+function formatTitles(posts) {
+  const names = posts.map((post) => `“${post.title}”`);
+  if (names.length <= 1) return names[0] || "";
+  if (names.length === 2) return `${names[0]} en ${names[1]}`;
+  return `${names.slice(0, -1).join(", ")} en ${names[names.length - 1]}`;
+}
+
 export function TrashPage() {
   const { isEditor } = useAuth();
   const dialog = useDialog();
@@ -62,10 +69,13 @@ export function TrashPage() {
   }
 
   async function emptyTrash() {
-    const countLabel = posts.length === 1 ? "activiteit" : "activiteiten";
+    const names = formatTitles(posts);
     const ok = await dialog.confirm({
       title: "Prullenbak legen?",
-      message: `Alles in de prullenbak wissen (${posts.length} ${countLabel})? Dit kun je daarna niet meer terughalen.`,
+      message:
+        posts.length === 1
+          ? `${names} wordt voorgoed gewist. Dit kun je daarna niet meer terughalen.`
+          : `${names} worden voorgoed gewist. Dit kun je daarna niet meer terughalen.`,
       confirmLabel: "Prullenbak legen",
       cancelLabel: "Annuleren",
       danger: true,
@@ -75,7 +85,10 @@ export function TrashPage() {
     try {
       await api.delete("/posts/trash");
       setPosts([]);
-      toast.show({ message: "Prullenbak is leeg.", duration: 4000 });
+      toast.show({
+        message: posts.length === 1 ? `${names} is voorgoed weg.` : "Prullenbak is leeg.",
+        duration: 4000,
+      });
     } catch (emptyError) {
       setError(getErrorMessage(emptyError, "Legen is niet gelukt."));
     } finally {
