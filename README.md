@@ -109,6 +109,19 @@ npm run dev
 
 Log in met Google. Het account in `CREATOR_EMAIL` wordt beheerder. Nodig daarna redacteuren uit via **Redactie**.
 
+### 5. Tests draaien
+
+```powershell
+npm run test:db:up
+npm test
+npm run test:db:down
+```
+
+Eenmalig `backend/.env.test` aanmaken (zie `backend/.env.test.example`). De
+tests draaien tegen een eigen wegwerp-database en nooit tegen die van het huis;
+Google wordt nagebootst, dus er is geen internet voor nodig. Uitleg staat in
+[TESTS.md](TESTS.md), het waarom in [SECURITY-TESTS.md](SECURITY-TESTS.md).
+
 ## ☁️ Online zetten
 
 Volgorde: Neon → Render → Vercel → Google origins bijwerken.
