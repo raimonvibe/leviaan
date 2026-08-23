@@ -55,7 +55,7 @@ export function TrashPage() {
     try {
       await api.delete(`/posts/${post.id}/permanent`);
       setPosts((current) => current.filter((item) => item.id !== post.id));
-      toast.show({ message: "De activiteit is voorgoed weg.", duration: 4000 });
+      toast.show({ message: `“${post.title}” is voorgoed weg.`, duration: 4000 });
     } catch (wipeError) {
       setError(getErrorMessage(wipeError, "Wissen is niet gelukt."));
     }

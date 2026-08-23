@@ -34,7 +34,7 @@ export function PostCard({ post, canEdit, onDelete, onRestore, onAttend, compact
           >
             <img src={post.imageData} alt={post.title} className="h-full w-full object-cover" />
             <span className="pointer-events-none absolute inset-x-0 bottom-0 bg-primary-900/50 px-3 py-2 text-left text-xs text-white opacity-0 sm:text-sm sm:group-hover:opacity-100 group-focus-visible:opacity-100">
-              Tik voor een grotere foto
+              Tik om te vergroten en in te zoomen
             </span>
           </button>
         ) : (
