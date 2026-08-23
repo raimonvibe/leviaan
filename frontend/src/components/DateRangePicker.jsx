@@ -38,7 +38,7 @@ export function DateRangePicker({ start, end, onChange }) {
             type="date"
             className="input"
             value={start}
-            max={end || undefined}
+            max={sameDay ? undefined : end || undefined}
             onChange={(event) => setStart(event.target.value)}
             required
           />
