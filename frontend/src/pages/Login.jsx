@@ -1,5 +1,5 @@
 import { GoogleLogin } from "@react-oauth/google";
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import { Link, Navigate } from "react-router";
 import { getErrorMessage } from "../api/client.js";
 import { Footer } from "../components/Footer.jsx";
@@ -7,70 +7,36 @@ import { Logo } from "../components/Logo.jsx";
 import { ThemeToggle } from "../components/ThemeToggle.jsx";
 import { GOOGLE_CLIENT_ID } from "../config.js";
 import { useAuth } from "../contexts/AuthContext.jsx";
-import { useTheme } from "../contexts/ThemeContext.jsx";
 
 function GoogleSignIn({ onCredential, onError }) {
-  const { isDark } = useTheme();
-  const boxRef = useRef(null);
   const [busy, setBusy] = useState(false);
-  const [width, setWidth] = useState(0);
-  const theme = isDark ? "filled_black" : "outline";
-
-  useEffect(() => {
-    const box = boxRef.current;
-    if (!box) return undefined;
-
-    function measure() {
-      const styles = getComputedStyle(box);
-      const pad = parseFloat(styles.paddingLeft) + parseFloat(styles.paddingRight);
-      const next = Math.min(400, Math.floor(box.getBoundingClientRect().width - pad));
-      if (next > 0) {
-        setWidth((current) => (Math.abs(current - next) <= 1 ? current : next));
-      }
-    }
-
-    measure();
-    const observer = new ResizeObserver(measure);
-    observer.observe(box);
-    window.addEventListener("orientationchange", measure);
-    return () => {
-      observer.disconnect();
-      window.removeEventListener("orientationchange", measure);
-    };
-  }, []);
 
   return (
     <div className="w-full min-w-0 space-y-3">
-      <div ref={boxRef} className="google-signin w-full min-w-0">
-        {width > 0 ? (
-          <GoogleLogin
-            key={`${theme}-${width}`}
-            locale="nl"
-            text="continue_with"
-            theme={theme}
-            size="large"
-            shape="rectangular"
-            width={String(width)}
-            useOneTap={false}
-            onSuccess={async (response) => {
-              if (!response.credential) {
-                onError("Inloggen is niet gelukt.");
-                return;
-              }
-              try {
-                setBusy(true);
-                await onCredential(response.credential);
-              } catch (loginError) {
-                onError(getErrorMessage(loginError, "Inloggen is niet gelukt."));
-              } finally {
-                setBusy(false);
-              }
-            }}
-            onError={() => onError("Google kon niet worden geopend.")}
-          />
-        ) : (
-          <div className="h-10 w-full" aria-hidden="true" />
-        )}
+      <div className="google-signin">
+        <GoogleLogin
+          locale="nl"
+          text="continue_with"
+          theme="outline"
+          size="large"
+          shape="rectangular"
+          useOneTap={false}
+          onSuccess={async (response) => {
+            if (!response.credential) {
+              onError("Inloggen is niet gelukt.");
+              return;
+            }
+            try {
+              setBusy(true);
+              await onCredential(response.credential);
+            } catch (loginError) {
+              onError(getErrorMessage(loginError, "Inloggen is niet gelukt."));
+            } finally {
+              setBusy(false);
+            }
+          }}
+          onError={() => onError("Google kon niet worden geopend.")}
+        />
       </div>
       {busy ? <p className="muted text-center text-sm">Even geduld…</p> : null}
     </div>

@@ -169,38 +169,20 @@ body {
     display: none;
   }
 
-  /* Google sizes the official button with min-width: min-content. The name and
-     email in "Continue as…" then refuse to shrink, so the right edge is clipped
-     by the card. Hover looks better because a blue wash fills the remaining box
-     and you finally see the rounded shape. Keep a little padding so that 1px
-     border is not shaved off, and let the text shrink with the card. */
+  /* Let Google size "Continue as…" to the account row. Stretching it to the
+     card left a white shell in dark mode and pinned the G to the right edge. */
   .google-signin {
+    display: flex;
+    justify-content: center;
+    width: 100%;
     min-width: 0;
-    padding: 2px;
   }
 
-  .google-signin > div {
-    min-width: 0;
-    max-width: 100%;
-  }
-
+  .google-signin > div,
   .google-signin iframe,
-  .google-signin [role="button"],
-  .google-signin .nsm7Bb-HzV7m-LgbsSe {
-    box-sizing: border-box !important;
-    width: 100% !important;
-    max-width: 100% !important;
-    min-width: 0 !important;
-    border-radius: 0.75rem !important;
-  }
-
-  .google-signin .nsm7Bb-HzV7m-LgbsSe-MJoBVe {
-    border-radius: inherit;
-  }
-
-  .google-signin .nsm7Bb-HzV7m-LgbsSe-bN97Pc-sM5MNb,
-  .google-signin .nsm7Bb-HzV7m-LgbsSe-BPrWId {
-    min-width: 0 !important;
-    overflow: hidden;
+  .google-signin [role="button"] {
+    max-width: 100%;
+    min-width: 0;
+    background: transparent;
   }
 }
