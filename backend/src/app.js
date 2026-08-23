@@ -93,6 +93,12 @@ export function createApp({ rateLimits = true } = {}) {
   app.use("/api/stats", statsRoutes);
 
   app.use((error, req, res, _next) => {
+    if (error?.status === 413 || error?.type === "entity.too.large") {
+      return res.status(413).json({
+        error:
+          "Deze foto past niet op het bord. Kies een andere foto, of sla de foto over.",
+      });
+    }
     if (error?.type === "entity.parse.failed" || error?.status === 400) {
       return res.status(400).json({ error: "Deze aanvraag is ongeldig." });
     }

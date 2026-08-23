@@ -48,10 +48,14 @@ function fileFromSrc(src, alt) {
   return new File([blob], fileNameFromAlt(alt, type), { type });
 }
 
-function prefersShareSheet() {
-  const touchPoints = Number(navigator.maxTouchPoints || 0);
-  if (touchPoints > 0) return true;
-  return Boolean(window.matchMedia?.("(any-pointer: coarse)")?.matches);
+function isIosDevice() {
+  const ua = navigator.userAgent || "";
+  if (/iPad|iPhone|iPod/i.test(ua)) return true;
+  return navigator.platform === "MacIntel" && Number(navigator.maxTouchPoints || 0) > 1;
+}
+
+function isAndroidDevice() {
+  return /Android/i.test(navigator.userAgent || "");
 }
 
 function downloadFile(file) {
@@ -81,6 +85,7 @@ export function Lightbox({ src, alt = "", onClose }) {
   const [offset, setOffset] = useState({ x: 0, y: 0 });
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState("");
+  const [saveNote, setSaveNote] = useState("");
   const viewportRef = useRef(null);
   const pointersRef = useRef(new Map());
   const pinchRef = useRef(null);
@@ -149,21 +154,23 @@ export function Lightbox({ src, alt = "", onClose }) {
     if (!src || saving) return;
     setSaving(true);
     setSaveError("");
+    setSaveNote("");
     try {
       const file = fileFromSrc(src, alt);
-      if (typeof navigator.share === "function" && prefersShareSheet()) {
+      if (isIosDevice() && typeof navigator.share === "function") {
         try {
           await navigator.share({ files: [file], title: alt || "Foto" });
           return;
         } catch (error) {
           if (error?.name === "AbortError") return;
         }
-      }
-      if (prefersShareSheet()) {
         openPhotoForSaving(file);
         return;
       }
       downloadFile(file);
+      if (isAndroidDevice()) {
+        setSaveNote("De foto is bewaard. Je vindt hem bij Downloads.");
+      }
     } catch (error) {
       if (error?.name === "AbortError") return;
       setSaveError("De foto kon niet worden bewaard.");
@@ -393,6 +400,7 @@ export function Lightbox({ src, alt = "", onClose }) {
             </button>
           ) : null}
         </div>
+        {saveNote ? <p className="text-center text-sm text-white/90">{saveNote}</p> : null}
         {saveError ? <p className="text-center text-sm text-accent-200">{saveError}</p> : null}
       </div>
     </div>

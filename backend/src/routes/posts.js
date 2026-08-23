@@ -102,7 +102,10 @@ function validatePost({ title, body, activityDate, activityEndDate, imageData, r
       return { error: "Kies een gewone foto (JPG, PNG, WebP of GIF)." };
     }
     if (cleanImage.length > MAX_IMAGE_CHARS) {
-      return { error: "De foto is te groot. Kies een kleinere foto." };
+      return {
+        error:
+          "Deze foto past niet op het bord. Kies een andere foto, of sla de foto over.",
+      };
     }
   }
 

@@ -279,7 +279,9 @@ describe("what comes in", () => {
       rawBody: JSON.stringify({ title: "x".repeat(3_000_000) }),
     });
 
-    assert.ok(response.status >= 400, "an oversized body was accepted");
+    assert.equal(response.status, 413);
+    assert.match(response.body.error, /past niet/i);
+    assert.match(response.body.error, /andere foto/i);
     assertNoInnards(response);
   });
 
