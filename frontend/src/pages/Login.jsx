@@ -8,6 +8,12 @@ import { ThemeToggle } from "../components/ThemeToggle.jsx";
 import { GOOGLE_CLIENT_ID } from "../config.js";
 import { useAuth } from "../contexts/AuthContext.jsx";
 
+// Google draws its own button with a 1px border and rounded corners. Asking for
+// exactly the width of the box puts that border on the clipping edge, where a
+// screen with a fractional pixel ratio shaves it off. A couple of pixels of room
+// keeps the outline whole.
+const BORDER_ROOM = 2;
+
 function GoogleSignIn({ onCredential, onError }) {
   const boxRef = useRef(null);
   const [busy, setBusy] = useState(false);
@@ -18,7 +24,8 @@ function GoogleSignIn({ onCredential, onError }) {
     if (!box) return undefined;
 
     function measure() {
-      const next = Math.min(400, Math.floor(box.getBoundingClientRect().width));
+      const room = Math.floor(box.getBoundingClientRect().width) - BORDER_ROOM;
+      const next = Math.min(400, room);
       if (next > 0) setWidth(next);
     }
 
