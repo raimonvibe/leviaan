@@ -42,7 +42,8 @@
 
     <script>
       // Zet de donkere modus voordat React laadt, anders flitst het scherm eerst wit.
-      // Zelfde sleutel en zelfde keuze als src/contexts/ThemeContext.jsx.
+      // Zelfde sleutel en zelfde keuze als src/contexts/ThemeContext.jsx:
+      // alleen een opgeslagen keuze, anders licht.
       (function () {
         var stored = null;
         try {
@@ -50,9 +51,7 @@
         } catch (error) {
           stored = null;
         }
-        var dark =
-          stored === "dark" ||
-          (stored !== "light" && window.matchMedia("(prefers-color-scheme: dark)").matches);
+        var dark = stored === "dark";
         if (!dark) return;
         document.documentElement.classList.add("dark");
         document.documentElement.style.colorScheme = "dark";

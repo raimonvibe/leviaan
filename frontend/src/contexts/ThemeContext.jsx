@@ -16,7 +16,8 @@ function applyChrome(theme) {
 }
 
 // What to show before anyone touches the switch: the choice from last time if
-// there is one, otherwise whatever the phone or laptop already prefers.
+// there is one, otherwise light. A first visit and a cleared store both start
+// light, even when the phone or laptop prefers dark.
 function firstTheme() {
   try {
     const stored = localStorage.getItem(THEME_KEY);
@@ -24,9 +25,9 @@ function firstTheme() {
       return stored;
     }
   } catch {
-    // Private mode can refuse storage. The system preference still works.
+    // Private mode can refuse storage. Light still works for this visit.
   }
-  return window.matchMedia?.("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+  return "light";
 }
 
 function remember(theme) {
@@ -48,8 +49,7 @@ export function ThemeProvider({ children }) {
     () => ({
       theme,
       isDark: theme === "dark",
-      // Only a real choice is written down, so the system preference keeps
-      // working for anybody who never touches the switch.
+      // Only a real choice is written down. First visit stays light.
       toggleTheme: () => {
         const next = theme === "dark" ? "light" : "dark";
         remember(next);
