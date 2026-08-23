@@ -21,7 +21,9 @@ function GoogleSignIn({ onCredential, onError }) {
     if (!box) return undefined;
 
     function measure() {
-      const next = Math.min(400, Math.floor(box.getBoundingClientRect().width));
+      const styles = getComputedStyle(box);
+      const pad = parseFloat(styles.paddingLeft) + parseFloat(styles.paddingRight);
+      const next = Math.min(400, Math.floor(box.getBoundingClientRect().width - pad));
       if (next > 0) {
         setWidth((current) => (Math.abs(current - next) <= 1 ? current : next));
       }
@@ -113,7 +115,7 @@ export function LoginPage() {
             </Link>
             .
           </p>
-          <div className="mt-5">
+          <div className="mt-5 min-w-0">
             {!GOOGLE_CLIENT_ID ? (
               <p className="note-error text-sm">Zet VITE_GOOGLE_CLIENT_ID in frontend/.env.</p>
             ) : (
