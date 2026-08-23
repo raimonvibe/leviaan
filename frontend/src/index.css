@@ -169,20 +169,16 @@ body {
     display: none;
   }
 
-  /* Let Google size "Continue as…" to the account row. Stretching it to the
-     card left a white shell in dark mode and pinned the G to the right edge. */
+  /* Google paints the official button in an iframe. The page sets color-scheme
+     to dark, and that iframe then draws a white sheet behind a dark button.
+     Force light color-scheme here only. Width is set through Google's API. */
   .google-signin {
-    display: flex;
-    justify-content: center;
     width: 100%;
     min-width: 0;
+    color-scheme: light;
   }
 
-  .google-signin > div,
-  .google-signin iframe,
-  .google-signin [role="button"] {
-    max-width: 100%;
-    min-width: 0;
+  .google-signin iframe {
     background: transparent;
   }
 }

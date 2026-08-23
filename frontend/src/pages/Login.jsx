@@ -1,5 +1,5 @@
 import { GoogleLogin } from "@react-oauth/google";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link, Navigate } from "react-router";
 import { getErrorMessage } from "../api/client.js";
 import { Footer } from "../components/Footer.jsx";
@@ -7,36 +7,75 @@ import { Logo } from "../components/Logo.jsx";
 import { ThemeToggle } from "../components/ThemeToggle.jsx";
 import { GOOGLE_CLIENT_ID } from "../config.js";
 import { useAuth } from "../contexts/AuthContext.jsx";
+import { useTheme } from "../contexts/ThemeContext.jsx";
+
+// Google Identity Services: width is official, max 400. Personalized "Continue
+// as…" needs at least 200, which this card is. Ask for a couple of pixels less
+// than the box so the 1px stroke is not clipped. Do not stretch the iframe.
+const MAX_WIDTH = 400;
+const BORDER_ROOM = 2;
 
 function GoogleSignIn({ onCredential, onError }) {
+  const { isDark } = useTheme();
+  const boxRef = useRef(null);
   const [busy, setBusy] = useState(false);
+  const [width, setWidth] = useState(0);
+  const theme = isDark ? "filled_black" : "outline";
+
+  useEffect(() => {
+    const box = boxRef.current;
+    if (!box) return undefined;
+
+    function measure() {
+      const room = Math.floor(box.getBoundingClientRect().width) - BORDER_ROOM;
+      if (room <= 0) return;
+      const next = Math.min(MAX_WIDTH, room);
+      setWidth((current) => (Math.abs(current - next) <= 1 ? current : next));
+    }
+
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(box);
+    window.addEventListener("orientationchange", measure);
+    return () => {
+      observer.disconnect();
+      window.removeEventListener("orientationchange", measure);
+    };
+  }, []);
 
   return (
     <div className="w-full min-w-0 space-y-3">
-      <div className="google-signin">
-        <GoogleLogin
-          locale="nl"
-          text="continue_with"
-          theme="outline"
-          size="large"
-          shape="rectangular"
-          useOneTap={false}
-          onSuccess={async (response) => {
-            if (!response.credential) {
-              onError("Inloggen is niet gelukt.");
-              return;
-            }
-            try {
-              setBusy(true);
-              await onCredential(response.credential);
-            } catch (loginError) {
-              onError(getErrorMessage(loginError, "Inloggen is niet gelukt."));
-            } finally {
-              setBusy(false);
-            }
-          }}
-          onError={() => onError("Google kon niet worden geopend.")}
-        />
+      <div ref={boxRef} className="google-signin">
+        {width > 0 ? (
+          <GoogleLogin
+            key={`${theme}-${width}`}
+            locale="nl"
+            text="continue_with"
+            theme={theme}
+            size="large"
+            shape="rectangular"
+            width={String(width)}
+            logo_alignment="left"
+            useOneTap={false}
+            onSuccess={async (response) => {
+              if (!response.credential) {
+                onError("Inloggen is niet gelukt.");
+                return;
+              }
+              try {
+                setBusy(true);
+                await onCredential(response.credential);
+              } catch (loginError) {
+                onError(getErrorMessage(loginError, "Inloggen is niet gelukt."));
+              } finally {
+                setBusy(false);
+              }
+            }}
+            onError={() => onError("Google kon niet worden geopend.")}
+          />
+        ) : (
+          <div className="h-10 w-full" aria-hidden="true" />
+        )}
       </div>
       {busy ? <p className="muted text-center text-sm">Even geduld…</p> : null}
     </div>
