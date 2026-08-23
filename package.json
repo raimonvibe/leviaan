@@ -3,7 +3,12 @@
   "private": true,
   "scripts": {
     "dev": "concurrently -n api,web -c blue,magenta \"npm run dev --prefix backend\" \"npm run dev --prefix frontend\"",
-    "install:all": "npm install --prefix backend && npm install --prefix frontend"
+    "install:all": "npm install --prefix backend && npm install --prefix frontend",
+    "test": "npm test --prefix backend && npm test --prefix frontend",
+    "test:backend": "npm test --prefix backend",
+    "test:frontend": "npm test --prefix frontend",
+    "test:db:up": "docker run -d --rm --name leviaan-test-db -e POSTGRES_PASSWORD=postgres -e POSTGRES_USER=postgres -e POSTGRES_DB=leviaan_test -p 55432:5432 postgres:16-alpine",
+    "test:db:down": "docker rm -f leviaan-test-db"
   },
   "devDependencies": {
     "concurrently": "^9.1.2"
