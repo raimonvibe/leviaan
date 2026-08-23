@@ -7,26 +7,24 @@ import { Logo } from "../components/Logo.jsx";
 import { ThemeToggle } from "../components/ThemeToggle.jsx";
 import { GOOGLE_CLIENT_ID } from "../config.js";
 import { useAuth } from "../contexts/AuthContext.jsx";
-
-// Google draws its own button with a 1px border and rounded corners. Asking for
-// exactly the width of the box puts that border on the clipping edge, where a
-// screen with a fractional pixel ratio shaves it off. A couple of pixels of room
-// keeps the outline whole.
-const BORDER_ROOM = 2;
+import { useTheme } from "../contexts/ThemeContext.jsx";
 
 function GoogleSignIn({ onCredential, onError }) {
+  const { isDark } = useTheme();
   const boxRef = useRef(null);
   const [busy, setBusy] = useState(false);
   const [width, setWidth] = useState(0);
+  const theme = isDark ? "filled_black" : "outline";
 
   useEffect(() => {
     const box = boxRef.current;
     if (!box) return undefined;
 
     function measure() {
-      const room = Math.floor(box.getBoundingClientRect().width) - BORDER_ROOM;
-      const next = Math.min(400, room);
-      if (next > 0) setWidth(next);
+      const next = Math.min(400, Math.floor(box.getBoundingClientRect().width));
+      if (next > 0) {
+        setWidth((current) => (Math.abs(current - next) <= 1 ? current : next));
+      }
     }
 
     measure();
@@ -41,16 +39,13 @@ function GoogleSignIn({ onCredential, onError }) {
 
   return (
     <div className="w-full min-w-0 space-y-3">
-      <div
-        ref={boxRef}
-        className="flex w-full min-w-0 justify-center overflow-hidden [&_div]:max-w-full [&_iframe]:max-w-full"
-      >
+      <div ref={boxRef} className="google-signin w-full min-w-0">
         {width > 0 ? (
           <GoogleLogin
-            key={width}
+            key={`${theme}-${width}`}
             locale="nl"
             text="continue_with"
-            theme="outline"
+            theme={theme}
             size="large"
             shape="rectangular"
             width={String(width)}
@@ -72,7 +67,7 @@ function GoogleSignIn({ onCredential, onError }) {
             onError={() => onError("Google kon niet worden geopend.")}
           />
         ) : (
-          <div className="h-12 w-full" aria-hidden="true" />
+          <div className="h-10 w-full" aria-hidden="true" />
         )}
       </div>
       {busy ? <p className="muted text-center text-sm">Even geduld…</p> : null}
