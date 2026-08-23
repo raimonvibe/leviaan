@@ -1,20 +1,12 @@
 import { Router } from "express";
-import { OAuth2Client } from "google-auth-library";
 import { query } from "../db.js";
+import { verifyGoogleIdToken } from "../googleVerify.js";
 import { currentUserPayload, requireAuth, requireUsername, signToken } from "../middleware/auth.js";
 import { isOwnerEmail } from "../publicUser.js";
 import { cleanEmail, stripUnsafe } from "../sanitize.js";
 import { clearSessionCookie, setSessionCookie } from "../session.js";
 
 const router = Router();
-
-function googleClient() {
-  const clientId = process.env.GOOGLE_CLIENT_ID;
-  if (!clientId) {
-    throw new Error("GOOGLE_CLIENT_ID is required");
-  }
-  return new OAuth2Client(clientId);
-}
 
 function creatorEmail() {
   return cleanEmail(process.env.CREATOR_EMAIL);
@@ -37,11 +29,7 @@ async function payloadFromCredential(credential) {
     return null;
   }
 
-  const ticket = await googleClient().verifyIdToken({
-    idToken: credential,
-    audience: process.env.GOOGLE_CLIENT_ID,
-  });
-  const payload = ticket.getPayload();
+  const payload = await verifyGoogleIdToken(credential);
   if (!payload) return null;
   if (payload.aud !== process.env.GOOGLE_CLIENT_ID) return null;
   if (payload.iss !== "accounts.google.com" && payload.iss !== "https://accounts.google.com") {

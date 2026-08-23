@@ -141,3 +141,11 @@ Do not add a full Playwright suite against live Google in this first pass.
 - The suite can run in CI on each push.
 
 If you need to change production code to make this testable, keep the change small (export `app`, maybe a thin Google verify wrapper). Do not start an architecture project.
+
+---
+
+## Status
+
+Done. The suite lives in `backend/tests/` and `frontend/tests/`.
+How to run it, how to add to it, and what the first pass turned up:
+[TESTS.md](TESTS.md).
