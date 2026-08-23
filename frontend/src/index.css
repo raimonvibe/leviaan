@@ -2,6 +2,10 @@
 
 @custom-variant dark (&:where(.dark, .dark *));
 
+/* Wide enough for two columns, but too short to stack header + card + footer
+   without overlap: iPad landscape, 11" tablets, 1366×768 laptops. */
+@custom-variant short (@media (max-height: 56rem));
+
 @theme {
   --font-sans: "Source Sans 3", ui-sans-serif, system-ui, sans-serif;
   --font-serif: "Source Serif 4", ui-serif, Georgia, "Times New Roman", serif;

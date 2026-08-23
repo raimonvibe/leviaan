@@ -77,7 +77,7 @@ export function UsernameSetupPage({ changing = false }) {
 
   return (
     <div className="flex min-h-dvh flex-col">
-      <div className="mx-auto flex w-full max-w-md flex-1 flex-col justify-center px-4 py-10 pt-[max(2.5rem,env(safe-area-inset-top))]">
+      <div className="mx-auto flex w-full max-w-md grow shrink-0 flex-col justify-center px-4 py-10 pt-[max(2.5rem,env(safe-area-inset-top))]">
         <Link to="/" aria-label="Naar home">
           <Logo />
         </Link>

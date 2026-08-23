@@ -17,7 +17,7 @@ export function Footer({ light = false }) {
 
   return (
     <footer className={`mt-auto border-t ${tone}`}>
-      <div className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-4 py-8 pb-[max(2rem,env(safe-area-inset-bottom))] lg:flex-row lg:items-end lg:justify-between">
+      <div className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-4 py-8 pb-[max(2rem,env(safe-area-inset-bottom))] short:gap-4 short:py-4 short:pb-[max(1rem,env(safe-area-inset-bottom))] lg:flex-row lg:items-end lg:justify-between">
         <div className="max-w-md">
           <p className="font-serif text-lg text-inherit">Leviaan Campus</p>
           <p className={`mt-1 text-sm ${light ? "text-primary-200" : "text-primary-500 dark:text-primary-300"}`}>
