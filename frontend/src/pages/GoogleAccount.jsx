@@ -20,8 +20,10 @@ export function GoogleAccountPage() {
         <p className="text-sm text-brick-600 dark:text-accent-300">Hulp bij inloggen</p>
         <h1 className="page-title mt-1">Hoe maak ik een Google-account?</h1>
         <p className="mt-3 text-primary-600 dark:text-primary-200">
-          Dit bord werkt met Google. Heb je nog geen account? Dan maak je er eerst een. Dat mag op
-          je telefoon of op een computer. Vraag gerust een begeleider om mee te kijken.
+          Dit bord werkt met Google. Een account is niet genoeg: een begeleider of de beheerder
+          moet jouw e-mailadres eerst op de lijst zetten. Heb je nog geen account? Dan maak je er
+          eerst een. Dat mag op je telefoon of op een computer. Vraag gerust een begeleider om mee
+          te kijken.
         </p>
 
         <div className="mt-8 space-y-6 text-primary-800 dark:text-primary-100">
@@ -70,16 +72,18 @@ export function GoogleAccountPage() {
           <section className="card rounded-lg p-5">
             <h2 className="font-serif text-xl">Daarna op dit bord</h2>
             <p className="mt-2 leading-relaxed">
-              De eerste keer kies je een naam voor dit bord. Die naam zien bewoners en begeleiders.
-              Je mag de naam later wijzigen. Je e-mailadres blijft geheim.
+              Als jouw e-mail op de lijst staat, kies je de eerste keer een naam voor dit bord. Die
+              naam zien bewoners en begeleiders. Je mag de naam later wijzigen. Je e-mailadres
+              blijft geheim.
             </p>
           </section>
 
           <section className="card rounded-lg p-5">
             <h2 className="font-serif text-xl">Lukt het niet?</h2>
             <p className="mt-2 leading-relaxed">
-              Vraag een begeleider of de beheerder van dit huis. Zij kunnen naast je zitten en de
-              stappen samen doen. Google zelf heeft ook uitleg, maar die is soms wat lang.
+              Vraag een begeleider of de beheerder van dit huis. Zij moeten jouw e-mail eerst op de
+              lijst zetten. Zij kunnen ook naast je zitten en de stappen samen doen. Google zelf
+              heeft ook uitleg, maar die is soms wat lang.
             </p>
           </section>
         </div>

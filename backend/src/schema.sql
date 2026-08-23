@@ -33,6 +33,18 @@ CREATE INDEX IF NOT EXISTS idx_users_email ON users (email);
 CREATE INDEX IF NOT EXISTS idx_users_username ON users (username);
 CREATE INDEX IF NOT EXISTS idx_users_role ON users (role);
 CREATE INDEX IF NOT EXISTS idx_editor_invites_email ON editor_invites (email);
+
+ALTER TABLE editor_invites ADD COLUMN IF NOT EXISTS role VARCHAR(20) NOT NULL DEFAULT 'editor';
+UPDATE editor_invites SET role = 'editor' WHERE role IS NULL OR role NOT IN ('visitor', 'editor');
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_constraint WHERE conname = 'editor_invites_role_check'
+  ) THEN
+    ALTER TABLE editor_invites
+      ADD CONSTRAINT editor_invites_role_check CHECK (role IN ('visitor', 'editor'));
+  END IF;
+END $$;
 ALTER TABLE posts ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMPTZ;
 ALTER TABLE posts ADD COLUMN IF NOT EXISTS activity_end_date DATE;
 

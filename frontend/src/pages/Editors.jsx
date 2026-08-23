@@ -34,19 +34,30 @@ export function EditorsPage() {
     load().catch((loadError) => setError(getErrorMessage(loadError)));
   }, [isEditor]);
 
-  async function invite(event) {
-    event.preventDefault();
+  async function invite(role) {
     setError("");
+    if (!email.trim()) {
+      setError("Vul een geldig e-mailadres in.");
+      return;
+    }
     try {
-      const response = await api.post("/editors/invites", { email });
+      const response = await api.post("/editors/invites", { email, role });
       setEmail("");
       if (response.data.promoted) {
         toast.show({
           message: `${response.data.user.username} is nu begeleider en ziet wie er meedoet.`,
         });
-      } else {
+      } else if (response.data.upgraded) {
+        toast.show({
+          message: "Dit adres is nu uitgenodigd als begeleider.",
+        });
+      } else if (role === "editor") {
         toast.show({
           message: "Uitnodiging is gezet. Met datzelfde Google-e-mailadres wordt deze persoon automatisch begeleider.",
+        });
+      } else {
+        toast.show({
+          message: "E-mail is toegevoegd. Met datzelfde Google-adres kan deze bewoner inloggen.",
         });
       }
       await load();
@@ -69,7 +80,7 @@ export function EditorsPage() {
     const name = user.username || "Deze persoon";
     const ok = await dialog.confirm({
       title: "Van het bord halen?",
-      message: `${name} wordt van het bord gehaald. Activiteiten die deze persoon plaatste gaan ook weg.`,
+      message: `${name} wordt van het bord gehaald en kan daarna niet meer inloggen. Activiteiten die deze persoon plaatste gaan ook weg.`,
       confirmLabel: "Van het bord halen",
       cancelLabel: "Annuleren",
       danger: true,
@@ -88,7 +99,7 @@ export function EditorsPage() {
     setError("");
     const ok = await dialog.confirm({
       title: "Uitnodiging intrekken?",
-      message: `De uitnodiging voor ${inviteItem.email} wordt ingetrokken.`,
+      message: `De uitnodiging voor ${inviteItem.email} wordt ingetrokken. Dit adres kan daarna niet meer inloggen.`,
       confirmLabel: "Intrekken",
       cancelLabel: "Annuleren",
       danger: true,
@@ -122,21 +133,28 @@ export function EditorsPage() {
         </p>
         <h1 className="page-title mt-1">Beheer</h1>
         <p className="mt-2 max-w-2xl text-primary-600 dark:text-primary-200">
-          Nodig hier alleen een begeleider uit. Die Google-e-mail wordt begeleider. Bewoners hoef je
-          niet toe te voegen: zij loggen zelf in met Google. Uitleg over een account staat onderaan,
-          bij{" "}
+          Alleen mensen op deze lijst kunnen inloggen. Zet hier het Google-e-mailadres van een
+          bewoner of begeleider. Activiteiten van het huis blijven zo privé. Uitleg over een
+          account staat bij{" "}
           <Link to="/google-account" className="underline decoration-accent-400 underline-offset-4">
             Hoe maak ik een Google-account?
           </Link>
+          .
         </p>
         {error ? <p className="note-error mt-3 text-sm">{error}</p> : null}
       </div>
 
-      <form onSubmit={invite} className="card rounded-lg p-4 sm:p-6">
+      <form
+        onSubmit={(event) => {
+          event.preventDefault();
+          invite("visitor");
+        }}
+        className="card rounded-lg p-4 sm:p-6"
+      >
         <label className="label" htmlFor="email">
-          Google-e-mail van een begeleider
+          Google-e-mail van iemand uit het huis
         </label>
-        <div className="flex flex-col gap-3 sm:flex-row">
+        <div className="flex flex-col gap-3">
           <input
             id="email"
             type="email"
@@ -146,9 +164,14 @@ export function EditorsPage() {
             placeholder="naam@gmail.com"
             required
           />
-          <button type="submit" className="btn btn-primary shrink-0">
-            Uitnodigen
-          </button>
+          <div className="flex flex-col gap-3 sm:flex-row">
+            <button type="submit" className="btn btn-secondary">
+              Bewoner toevoegen
+            </button>
+            <button type="button" className="btn btn-primary" onClick={() => invite("editor")}>
+              Begeleider uitnodigen
+            </button>
+          </div>
         </div>
       </form>
 
@@ -156,13 +179,18 @@ export function EditorsPage() {
         <div className="card rounded-lg p-4 sm:p-6">
           <h2 className="font-serif text-xl text-ink">Nog niet ingelogd</h2>
           <p className="mt-1 text-sm text-primary-600 dark:text-primary-200">
-            Wacht tot deze begeleider inlogt met hetzelfde Google-adres.
+            Wacht tot deze persoon inlogt met hetzelfde Google-adres.
           </p>
           <ul className="mt-4 divide-y divide-primary-100 dark:divide-primary-400">
             {invites.map((inviteItem) => (
               <li key={inviteItem.id} className="flex items-center justify-between gap-4 py-3">
-                <span className="break-all text-ink">{inviteItem.email}</span>
-                <button type="button" className="btn btn-ghost" onClick={() => revokeInvite(inviteItem)}>
+                <div className="min-w-0">
+                  <span className="break-all text-ink">{inviteItem.email}</span>
+                  <p className="mt-1 text-sm text-primary-600 dark:text-primary-200">
+                    {inviteItem.role === "editor" ? "Wordt begeleider" : "Wordt bewoner"}
+                  </p>
+                </div>
+                <button type="button" className="btn btn-ghost shrink-0" onClick={() => revokeInvite(inviteItem)}>
                   Intrekken
                 </button>
               </li>
@@ -200,11 +228,11 @@ export function EditorsPage() {
       <div>
         <h2 className="font-serif text-xl text-ink">Bewoners</h2>
         <p className="mt-1 text-sm text-primary-600 dark:text-primary-200">
-          Geen e-mail nodig. Zij komen vanzelf in deze lijst na inloggen.
+          Zij komen in deze lijst nadat hun e-mail is toegevoegd en zij inloggen.
         </p>
         {bewoners.length === 0 ? (
           <div className="card mt-4 rounded-lg p-5 text-primary-600 dark:text-primary-200">
-            Er is nog geen bewoner ingelogd.
+            Nog geen bewoner. Voeg hierboven een Google-e-mail toe.
           </div>
         ) : (
           <ul className="card mt-4 divide-y divide-primary-100 overflow-hidden rounded-lg dark:divide-primary-400">

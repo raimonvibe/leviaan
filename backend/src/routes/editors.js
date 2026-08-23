@@ -2,16 +2,13 @@ import { Router } from "express";
 import { query } from "../db.js";
 import { requireAuth, requireCreator, requireEditor, requireUsername } from "../middleware/auth.js";
 import { isOwnerEmail, toPublicUser } from "../publicUser.js";
+import { cleanEmail } from "../sanitize.js";
 
 const router = Router();
 
 function parseId(value) {
   const id = Number.parseInt(String(value), 10);
   return Number.isInteger(id) && id > 0 ? id : null;
-}
-
-function normalizeEmail(email) {
-  return String(email || "").trim().toLowerCase();
 }
 
 router.use(requireAuth, requireUsername, requireEditor);
@@ -27,7 +24,7 @@ router.get("/", async (_req, res) => {
          created_at`,
     ),
     query(
-      `SELECT id, email, created_at
+      `SELECT id, email, role, created_at
        FROM editor_invites
        ORDER BY created_at DESC`,
     ),
@@ -42,15 +39,20 @@ router.get("/", async (_req, res) => {
     invites: invites.rows.map((row) => ({
       id: row.id,
       email: row.email,
+      role: row.role === "visitor" ? "visitor" : "editor",
       createdAt: row.created_at,
     })),
   });
 });
 
 router.post("/invites", async (req, res) => {
-  const email = normalizeEmail(req.body?.email);
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+  const email = cleanEmail(req.body?.email);
+  const role = String(req.body?.role || "editor");
+  if (!email) {
     return res.status(400).json({ error: "Vul een geldig e-mailadres in." });
+  }
+  if (!["visitor", "editor"].includes(role)) {
+    return res.status(400).json({ error: "Kies bewoner of begeleider." });
   }
 
   const existingUser = await query(
@@ -70,6 +72,9 @@ router.post("/invites", async (req, res) => {
     if (actualRole === "editor") {
       return res.status(400).json({ error: "Deze persoon is al begeleider." });
     }
+    if (role === "visitor") {
+      return res.status(400).json({ error: "Deze persoon is al bewoner." });
+    }
     await query("UPDATE users SET role = 'editor', base_role = 'editor' WHERE id = $1", [user.id]);
     await query("DELETE FROM editor_invites WHERE email = $1", [email]);
     return res.status(201).json({
@@ -78,12 +83,31 @@ router.post("/invites", async (req, res) => {
     });
   }
 
+  const existingInvite = await query("SELECT id, role FROM editor_invites WHERE email = $1", [email]);
+  if (existingInvite.rowCount > 0) {
+    const currentRole = existingInvite.rows[0].role === "visitor" ? "visitor" : "editor";
+    if (currentRole === role) {
+      return res.status(409).json({
+        error: role === "editor" ? "Deze uitnodiging staat al open." : "Dit e-mailadres staat al op de lijst.",
+      });
+    }
+    if (currentRole === "editor" && role === "visitor") {
+      return res.status(400).json({ error: "Dit adres is al uitgenodigd als begeleider." });
+    }
+    const upgraded = await query(
+      `UPDATE editor_invites SET role = 'editor' WHERE id = $1
+       RETURNING id, email, role, created_at`,
+      [existingInvite.rows[0].id],
+    );
+    return res.status(201).json({ upgraded: true, invite: upgraded.rows[0] });
+  }
+
   try {
     const created = await query(
-      `INSERT INTO editor_invites (email, invited_by)
-       VALUES ($1, $2)
-       RETURNING id, email, created_at`,
-      [email, req.user.id],
+      `INSERT INTO editor_invites (email, invited_by, role)
+       VALUES ($1, $2, $3)
+       RETURNING id, email, role, created_at`,
+      [email, req.user.id, role],
     );
     res.status(201).json({ invite: created.rows[0] });
   } catch (error) {

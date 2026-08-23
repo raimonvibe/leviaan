@@ -3,6 +3,8 @@ import { OAuth2Client } from "google-auth-library";
 import { query } from "../db.js";
 import { currentUserPayload, requireAuth, requireUsername, signToken } from "../middleware/auth.js";
 import { isOwnerEmail } from "../publicUser.js";
+import { cleanEmail, stripUnsafe } from "../sanitize.js";
+import { clearSessionCookie, setSessionCookie } from "../session.js";
 
 const router = Router();
 
@@ -14,12 +16,8 @@ function googleClient() {
   return new OAuth2Client(clientId);
 }
 
-function normalizeEmail(email) {
-  return String(email || "").trim().toLowerCase();
-}
-
 function creatorEmail() {
-  return normalizeEmail(process.env.CREATOR_EMAIL);
+  return cleanEmail(process.env.CREATOR_EMAIL);
 }
 
 function usernameFromGoogle(payload) {
@@ -32,46 +30,29 @@ function isVerifiedEmail(value) {
 }
 
 async function payloadFromCredential(credential) {
+  if (typeof credential !== "string" || credential.length < 40 || credential.length > 4096) {
+    return null;
+  }
+  if (credential.split(".").length !== 3) {
+    return null;
+  }
+
   const ticket = await googleClient().verifyIdToken({
     idToken: credential,
     audience: process.env.GOOGLE_CLIENT_ID,
   });
-  return ticket.getPayload();
-}
-
-async function payloadFromAccessToken(accessToken) {
-  if (typeof accessToken !== "string" || accessToken.length < 20 || accessToken.length > 4096) {
+  const payload = ticket.getPayload();
+  if (!payload) return null;
+  if (payload.aud !== process.env.GOOGLE_CLIENT_ID) return null;
+  if (payload.iss !== "accounts.google.com" && payload.iss !== "https://accounts.google.com") {
     return null;
   }
+  return payload;
+}
 
-  const tokenInfoUrl = new URL("https://oauth2.googleapis.com/tokeninfo");
-  tokenInfoUrl.searchParams.set("access_token", accessToken);
-  const tokenInfoResponse = await fetch(tokenInfoUrl);
-  if (!tokenInfoResponse.ok) {
-    throw new Error("invalid access token");
-  }
-
-  const tokenInfo = await tokenInfoResponse.json();
-  const audience = tokenInfo.aud || tokenInfo.azp || tokenInfo.audience;
-  if (audience !== process.env.GOOGLE_CLIENT_ID) {
-    throw new Error("wrong audience");
-  }
-
-  const userInfoResponse = await fetch("https://www.googleapis.com/oauth2/v3/userinfo", {
-    headers: { Authorization: `Bearer ${accessToken}` },
-  });
-  if (!userInfoResponse.ok) {
-    throw new Error("userinfo failed");
-  }
-
-  const userInfo = await userInfoResponse.json();
-  return {
-    sub: userInfo.sub || tokenInfo.sub || tokenInfo.user_id,
-    email: userInfo.email || tokenInfo.email,
-    email_verified: userInfo.email_verified ?? tokenInfo.email_verified ?? tokenInfo.verified_email,
-    name: userInfo.name,
-    given_name: userInfo.given_name,
-  };
+async function findInvite(email) {
+  const invite = await query("SELECT id, role FROM editor_invites WHERE email = $1", [email]);
+  return invite.rows[0] || null;
 }
 
 async function resolveRole(email) {
@@ -79,27 +60,24 @@ async function resolveRole(email) {
     return "creator";
   }
 
-  const invite = await query("SELECT id FROM editor_invites WHERE email = $1", [email]);
-  if (invite.rowCount > 0) {
-    return "editor";
+  const invite = await findInvite(email);
+  if (!invite) {
+    return null;
   }
 
-  return "visitor";
+  return invite.role === "editor" ? "editor" : "visitor";
 }
 
 router.post("/google", async (req, res) => {
   try {
     const credential = req.body?.credential;
-    const accessToken = req.body?.accessToken;
-    if (!credential && !accessToken) {
+    if (!credential) {
       return res.status(400).json({ error: "Google-inlog ontbreekt." });
     }
 
-    const payload = credential
-      ? await payloadFromCredential(credential)
-      : await payloadFromAccessToken(accessToken);
+    const payload = await payloadFromCredential(credential);
     const googleId = payload?.sub;
-    const email = normalizeEmail(payload?.email);
+    const email = cleanEmail(payload?.email);
 
     if (!payload || !googleId || !email || !isVerifiedEmail(payload.email_verified)) {
       return res.status(401).json({ error: "Google kon dit account niet bevestigen." });
@@ -114,6 +92,12 @@ router.post("/google", async (req, res) => {
 
     if (!user) {
       const role = await resolveRole(email);
+      if (!role) {
+        return res.status(403).json({
+          error:
+            "Dit e-mailadres staat niet op de lijst van het huis. Vraag een begeleider of de beheerder om je toe te voegen.",
+        });
+      }
       const created = await query(
         `INSERT INTO users (google_id, email, username, role, base_role)
          VALUES ($1, $2, NULL, $3, $3)
@@ -131,8 +115,9 @@ router.post("/google", async (req, res) => {
         nextRole = "editor";
         nextBaseRole = "editor";
       } else if (user.role === "visitor") {
-        nextRole = await resolveRole(email);
-        if (nextRole === "editor") {
+        const invitedRole = await resolveRole(email);
+        if (invitedRole === "editor") {
+          nextRole = "editor";
           nextBaseRole = "editor";
         }
       }
@@ -148,13 +133,10 @@ router.post("/google", async (req, res) => {
       }
     }
 
-    if (user.role === "editor" || user.role === "creator") {
-      await query("DELETE FROM editor_invites WHERE email = $1", [email]);
-    }
+    await query("DELETE FROM editor_invites WHERE email = $1", [email]);
 
-    const token = signToken(user);
+    setSessionCookie(res, signToken(user));
     return res.json({
-      token,
       user: currentUserPayload(user),
       suggestedUsername: !user.username ? usernameFromGoogle(payload) : null,
     });
@@ -166,6 +148,11 @@ router.post("/google", async (req, res) => {
 
 router.get("/me", requireAuth, (req, res) => {
   res.json({ user: currentUserPayload(req.user) });
+});
+
+router.post("/logout", (req, res) => {
+  clearSessionCookie(res);
+  res.json({ ok: true });
 });
 
 router.patch("/role", requireAuth, requireUsername, async (req, res) => {
@@ -187,7 +174,7 @@ router.patch("/role", requireAuth, requireUsername, async (req, res) => {
 });
 
 router.post("/username", requireAuth, async (req, res) => {
-  const username = String(req.body?.username || "").trim();
+  const username = stripUnsafe(String(req.body?.username || "")).trim();
 
   if (!/^[a-zA-Z0-9_]{3,24}$/.test(username)) {
     return res.status(400).json({

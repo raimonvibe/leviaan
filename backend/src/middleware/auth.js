@@ -1,6 +1,7 @@
 import jwt from "jsonwebtoken";
 import { query } from "../db.js";
 import { isEditorRole, toPrivateUser } from "../publicUser.js";
+import { readSessionToken } from "../session.js";
 
 export function signToken(user) {
   return jwt.sign(
@@ -12,8 +13,7 @@ export function signToken(user) {
 
 export async function requireAuth(req, res, next) {
   try {
-    const header = req.headers.authorization || "";
-    const token = header.startsWith("Bearer ") ? header.slice(7) : null;
+    const token = readSessionToken(req);
 
     if (!token) {
       return res.status(401).json({ error: "Je bent niet ingelogd." });
