@@ -89,8 +89,8 @@ jobs:
 
       - name: Known problems in backend packages
         working-directory: backend
-        run: npm audit --audit-level=high
+        run: npm audit --audit-level=moderate
 
       - name: Known problems in frontend packages
         working-directory: frontend
-        run: npm audit --audit-level=high
+        run: npm audit --audit-level=moderate
