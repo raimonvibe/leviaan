@@ -97,9 +97,7 @@ export function GoogleAccountPage() {
           </Link>
         </div>
       </main>
-      <div className="pb-[max(0.75rem,env(safe-area-inset-bottom))]">
-        <Footer />
-      </div>
+      <Footer />
     </div>
   );
 }

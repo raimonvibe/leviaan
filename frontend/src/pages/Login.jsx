@@ -44,7 +44,7 @@ function GoogleSignIn({ onCredential, onError }) {
   }, []);
 
   return (
-    <div className="w-full min-w-0 space-y-3">
+    <div className="w-full min-w-0 space-y-2">
       <div ref={boxRef} className="google-signin">
         {width > 0 ? (
           <GoogleLogin
@@ -91,62 +91,48 @@ export function LoginPage() {
 
   return (
     <div className="flex min-h-dvh flex-col overflow-x-hidden">
-      <header className="flex items-center justify-between gap-3 px-4 pb-3 pt-[max(0.75rem,env(safe-area-inset-top))] short:pb-2 sm:px-6">
+      <header className="flex items-center justify-between gap-3 px-4 py-3 pt-[max(0.75rem,env(safe-area-inset-top))] sm:px-6">
         <Link to="/" className="min-w-0" aria-label="Naar het begin">
           <Logo />
         </Link>
         <ThemeToggle />
       </header>
 
-      <div className="mx-auto flex w-full max-w-lg grow shrink-0 flex-col justify-center gap-6 px-4 py-4 sm:px-6 lg:max-w-5xl lg:grid lg:grid-cols-2 lg:items-center lg:gap-12 lg:py-10 short:gap-4 short:py-3 short:lg:items-start short:lg:gap-8 short:lg:py-4">
-        <div className="order-2 text-center lg:order-1 lg:text-left">
-          <p className="font-serif text-3xl leading-tight text-ink sm:text-4xl lg:text-5xl short:text-3xl short:lg:text-4xl">
-            Jouw huis.
-            <br />
-            Jouw activiteiten.
-          </p>
-          <p className="muted mx-auto mt-3 max-w-md text-sm sm:text-base lg:mx-0 short:mt-2">
-            Hier zie je wat er in huis speelt: een foto, een korte tekst en wanneer het is.
-          </p>
+      <main className="mx-auto flex w-full max-w-sm grow flex-col justify-center px-4 py-6 sm:max-w-md sm:px-6">
+        <h1 className="font-serif text-2xl text-ink sm:text-[1.75rem]">Inloggen</h1>
+        <p className="muted mt-1.5 text-sm leading-relaxed">
+          Alleen voor mensen van dit huis. Nog geen Google-account?{" "}
+          <Link to="/google-account" className="underline decoration-accent-400 underline-offset-4">
+            Zo maak je er een
+          </Link>
+          .
+        </p>
+
+        <div className="card mt-5 min-w-0 overflow-hidden rounded-lg p-4 sm:p-5">
+          {!GOOGLE_CLIENT_ID ? (
+            <p className="note-error text-sm">Zet VITE_GOOGLE_CLIENT_ID in frontend/.env.</p>
+          ) : (
+            <GoogleSignIn
+              onCredential={async (credential) => {
+                setError("");
+                await loginWithGoogle({ credential });
+              }}
+              onError={setError}
+            />
+          )}
+          {error ? <p className="note-error mt-3 text-sm">{error}</p> : null}
         </div>
 
-        <div className="card order-1 w-full min-w-0 overflow-hidden rounded-lg p-4 text-ink sm:p-6 lg:order-2 lg:p-7 short:p-4 short:sm:p-5 short:lg:p-5">
-          <h1 className="font-serif text-2xl text-ink sm:text-3xl short:text-2xl">Inloggen</h1>
-          <p className="muted mt-1 text-sm">
-            Alleen mensen van het huis kunnen binnenkomen. Jouw Google-adres moet eerst op de lijst
-            staan. Nog geen account?{" "}
-            <Link to="/google-account" className="underline decoration-accent-400 underline-offset-4">
-              Zo maak je er een
-            </Link>
-            .
-          </p>
-          <div className="mt-5 min-w-0 short:mt-3">
-            {!GOOGLE_CLIENT_ID ? (
-              <p className="note-error text-sm">Zet VITE_GOOGLE_CLIENT_ID in frontend/.env.</p>
-            ) : (
-              <GoogleSignIn
-                onCredential={async (credential) => {
-                  setError("");
-                  await loginWithGoogle({ credential });
-                }}
-                onError={setError}
-              />
-            )}
-          </div>
-          {error ? <p className="note-error mt-4 text-sm">{error}</p> : null}
-          <p className="muted mt-5 text-sm short:mt-3">
-            Door in te loggen ga je akkoord met hoe we met je gegevens omgaan. Lees de{" "}
-            <Link to="/privacy" className="underline decoration-accent-400 underline-offset-4">
-              privacy-uitleg
-            </Link>
-            .
-          </p>
-        </div>
-      </div>
+        <p className="muted mt-4 text-sm leading-relaxed">
+          Door in te loggen ga je akkoord met de{" "}
+          <Link to="/privacy" className="underline decoration-accent-400 underline-offset-4">
+            privacy-uitleg
+          </Link>
+          .
+        </p>
+      </main>
 
-      <div className="pb-[max(0.5rem,env(safe-area-inset-bottom))]">
-        <Footer />
-      </div>
+      <Footer />
     </div>
   );
 }

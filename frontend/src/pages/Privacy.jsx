@@ -25,13 +25,27 @@ export function PrivacyPage() {
           <section className="card rounded-lg p-5">
             <h2 className="font-serif text-xl">Wat is dit bord?</h2>
             <p className="mt-2 leading-relaxed">
-              Leviaan Campus is het activiteitenbord van dit huis. Wie mag plaatsen hangt een kaart
-              op met een foto, een tekst en een datum. Jij logt in om mee te kijken. Meer over
-              Leviaan zelf staat op{" "}
+              Leviaan Campus is het activiteitenbord van dit huis: jouw huis, jouw activiteiten.
+              Hier zie je wat er speelt — een foto, een korte tekst en wanneer het is. Wie mag
+              plaatsen hangt zo’n kaart op. Jij logt in om mee te kijken. Meer over Leviaan zelf
+              staat op{" "}
               <a className="underline decoration-accent-400 underline-offset-4" href="https://www.leviaan.nl" target="_blank" rel="noreferrer">
                 leviaan.nl
               </a>
               .
+            </p>
+          </section>
+
+          <section className="card rounded-lg p-5">
+            <h2 className="font-serif text-xl">Wie mag binnenkomen?</h2>
+            <p className="mt-2 leading-relaxed">
+              Alleen mensen van het huis. Je Google-adres moet eerst op de lijst staan die de
+              beheerder of een begeleider bijhoudt. Nog geen Google-account? Op de pagina{" "}
+              <Link to="/google-account" className="underline decoration-accent-400 underline-offset-4">
+                Hoe maak ik een Google-account?
+              </Link>{" "}
+              staat hoe je er een maakt. Daarna moet iemand van het huis jouw e-mail nog op de
+              lijst zetten.
             </p>
           </section>
 
@@ -61,9 +75,9 @@ export function PrivacyPage() {
             <p className="mt-2 leading-relaxed">
               Je komt binnen met je Google-account. Wij krijgen van Google een bevestiging, geen
               wachtwoord. Die bevestiging controleren we op onze server. Niet iedereen met Google
-              kan binnenkomen: alleen e-mailadressen die de beheerder of een begeleider op Beheer
-              heeft gezet. Zo blijven activiteiten van het huis privé. Google heeft een eigen
-              privacybeleid.
+              kan binnenkomen: alleen e-mailadressen die op de huislijst staan. Zo blijven
+              activiteiten van het huis privé. Door in te loggen ga je akkoord met deze uitleg.
+              Google heeft een eigen privacybeleid.
             </p>
           </section>
 
@@ -81,9 +95,7 @@ export function PrivacyPage() {
           Terug naar het bord
         </Link>
       </main>
-      <div className="pb-[max(0.75rem,env(safe-area-inset-bottom))]">
-        <Footer />
-      </div>
+      <Footer />
     </div>
   );
 }

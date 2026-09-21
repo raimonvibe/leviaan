@@ -219,9 +219,7 @@ export function Layout() {
       <main className="mx-auto w-full min-w-0 max-w-6xl flex-1 px-4 py-6 sm:py-8">
         <Outlet />
       </main>
-      <div className="pb-[max(0.75rem,env(safe-area-inset-bottom))]">
-        <Footer />
-      </div>
+      <Footer />
     </div>
   );
 }
