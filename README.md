@@ -120,7 +120,8 @@ npm run test:db:down
 Eenmalig `backend/.env.test` aanmaken (zie `backend/.env.test.example`). De
 tests draaien tegen een eigen wegwerp-database en nooit tegen die van het huis;
 Google wordt nagebootst, dus er is geen internet voor nodig. Uitleg staat in
-[TESTS.md](TESTS.md), het waarom in [SECURITY-TESTS.md](SECURITY-TESTS.md).
+[TESTS.md](TESTS.md), het waarom in [SECURITY-TESTS.md](SECURITY-TESTS.md). De
+doorlichting van september 2026 staat in [SECURITY-AUDIT.md](SECURITY-AUDIT.md).
 
 ## ☁️ Online zetten
 
