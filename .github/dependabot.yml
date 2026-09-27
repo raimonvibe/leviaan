@@ -1,3 +1,4 @@
+# Manual scan trigger: 2026-09-27T01:31:21Z (fresh Dependabot version-update check)
 # Dependabot keeps dependencies up to date.
 # Runs every Monday; also kicks off shortly after this file lands on the default branch.
 # https://docs.github.com/en/code-security/dependabot/dependabot-version-updates/configuration-options-for-the-dependabot.yml-file
@@ -51,4 +52,3 @@ updates:
       time: "09:00"
       timezone: Europe/Amsterdam
     open-pull-requests-limit: 5
-
