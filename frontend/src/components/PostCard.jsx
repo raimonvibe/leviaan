@@ -10,6 +10,8 @@ export function PostCard({ post, canEdit, onDelete, onRestore, onAttend, compact
   const stamp = formatShortDate(post.activityDate);
   const upcoming = isUpcoming(post);
   const today = isToday(post);
+  // The server decides in Dutch time; the local check only covers an older response.
+  const ended = post.ended ?? !upcoming;
   const range = formatRange(post.activityDate, post.activityEndDate);
 
   async function copyLink() {
@@ -67,19 +69,25 @@ export function PostCard({ post, canEdit, onDelete, onRestore, onAttend, compact
         ) : null}
         {compact ? null : (
           <div className="space-y-2 pt-1">
-            <label className="flex min-h-11 cursor-pointer items-center gap-3 text-sm">
-              <input
-                type="checkbox"
-                className="h-5 w-5 accent-primary-600"
-                checked={Boolean(post.attending)}
-                onChange={() => onAttend?.(post)}
-              />
-              <span>{post.attending ? "Je doet mee" : "Ik doe mee"}</span>
-            </label>
+            {ended ? (
+              <p className="muted flex min-h-11 items-center text-sm">
+                {post.attending ? "Je deed mee. Deze activiteit is voorbij." : "Deze activiteit is voorbij."}
+              </p>
+            ) : (
+              <label className="flex min-h-11 cursor-pointer items-center gap-3 text-sm">
+                <input
+                  type="checkbox"
+                  className="h-5 w-5 accent-primary-600"
+                  checked={Boolean(post.attending)}
+                  onChange={() => onAttend?.(post)}
+                />
+                <span>{post.attending ? "Je doet mee" : "Ik doe mee"}</span>
+              </label>
+            )}
             {Array.isArray(post.attendees) ? (
               <div className="rounded-md border border-primary-200 bg-primary-50/80 px-3 py-3 text-sm dark:border-primary-400 dark:bg-primary-900/80">
                 <p className="font-medium text-primary-700 dark:text-accent-200">
-                  Bewoners die meedoen ({post.attendeeCount ?? post.attendees.length})
+                  {ended ? "Bewoners die meededen" : "Bewoners die meedoen"} ({post.attendeeCount ?? post.attendees.length})
                 </p>
                 {post.attendees.length ? (
                   <ul className="mt-2 space-y-1">
@@ -90,7 +98,9 @@ export function PostCard({ post, canEdit, onDelete, onRestore, onAttend, compact
                     ))}
                   </ul>
                 ) : (
-                  <p className="muted mt-2">Nog niemand heeft zich opgegeven.</p>
+                  <p className="muted mt-2">
+                    {ended ? "Niemand had zich opgegeven." : "Nog niemand heeft zich opgegeven."}
+                  </p>
                 )}
               </div>
             ) : null}

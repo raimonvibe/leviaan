@@ -68,6 +68,10 @@ export function BoardPage() {
         : await api.post(`/posts/${post.id}/attend`);
       setPosts((current) => current.map((item) => (item.id === post.id ? response.data.post : item)));
     } catch (attendError) {
+      // The board stayed open past the last day: lock the card as the server already has.
+      if (attendError?.response?.status === 409) {
+        setPosts((current) => current.map((item) => (item.id === post.id ? { ...item, ended: true } : item)));
+      }
       setError(getErrorMessage(attendError, "Aanmelden is niet gelukt."));
     }
   }

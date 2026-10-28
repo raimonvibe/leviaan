@@ -8,6 +8,12 @@ const router = Router();
 const MAX_IMAGE_CHARS = 1_800_000;
 const SAFE_IMAGE = /^data:image\/(jpeg|jpg|png|webp|gif);base64,[A-Za-z0-9+/=\r\n]+$/i;
 
+// The house is in the Netherlands and Render runs on UTC, so "today" has to be
+// asked for in Dutch time or an evening activity would close an hour early.
+const ACTIVITY_ENDED_SQL =
+  "COALESCE(p.activity_end_date, p.activity_date) < (CURRENT_TIMESTAMP AT TIME ZONE 'Europe/Amsterdam')::date";
+const ENDED_ERROR = "Deze activiteit is al voorbij. Meedoen of afmelden kan niet meer.";
+
 function parseId(value) {
   const id = Number.parseInt(String(value), 10);
   return Number.isInteger(id) && id > 0 ? id : null;
@@ -24,6 +30,7 @@ function mapPost(row, extras = {}) {
     createdAt: row.created_at,
     updatedAt: row.updated_at,
     deletedAt: row.deleted_at,
+    ended: Boolean(row.ended),
     author: toPublicUser({
       id: row.author_id,
       username: row.author_username || row.author_name || "Voormalige begeleider",
@@ -131,6 +138,7 @@ const postSelect = `
     p.created_at,
     p.updated_at,
     p.deleted_at,
+    ${ACTIVITY_ENDED_SQL} AS ended,
     u.username AS author_username,
     u.role AS author_role
   FROM posts p
@@ -254,9 +262,15 @@ router.post("/:id/restore", requireAuth, requireUsername, requireEditor, async (
 router.post("/:id/attend", requireAuth, requireUsername, async (req, res) => {
   const id = parseId(req.params.id);
   if (!id) return res.status(404).json({ error: "Dit bericht bestaat niet." });
-  const existing = await query("SELECT id FROM posts WHERE id = $1 AND deleted_at IS NULL", [id]);
+  const existing = await query(
+    `SELECT p.id, ${ACTIVITY_ENDED_SQL} AS ended FROM posts p WHERE p.id = $1 AND p.deleted_at IS NULL`,
+    [id],
+  );
   if (existing.rowCount === 0) {
     return res.status(404).json({ error: "Dit bericht bestaat niet." });
+  }
+  if (existing.rows[0].ended) {
+    return res.status(409).json({ error: ENDED_ERROR });
   }
   await query(
     `INSERT INTO attendances (post_id, user_id)
@@ -272,11 +286,19 @@ router.post("/:id/attend", requireAuth, requireUsername, async (req, res) => {
 router.delete("/:id/attend", requireAuth, requireUsername, async (req, res) => {
   const id = parseId(req.params.id);
   if (!id) return res.status(404).json({ error: "Dit bericht bestaat niet." });
-  await query("DELETE FROM attendances WHERE post_id = $1 AND user_id = $2", [id, req.user.id]);
-  const result = await query(`${postSelect} WHERE p.id = $1 AND p.deleted_at IS NULL`, [id]);
-  if (result.rowCount === 0) {
+  const existing = await query(
+    `SELECT p.id, ${ACTIVITY_ENDED_SQL} AS ended FROM posts p WHERE p.id = $1 AND p.deleted_at IS NULL`,
+    [id],
+  );
+  if (existing.rowCount === 0) {
     return res.status(404).json({ error: "Dit bericht bestaat niet." });
   }
+  // Who took part is a record once the activity is over; nobody rewrites it afterwards.
+  if (existing.rows[0].ended) {
+    return res.status(409).json({ error: ENDED_ERROR });
+  }
+  await query("DELETE FROM attendances WHERE post_id = $1 AND user_id = $2", [id, req.user.id]);
+  const result = await query(`${postSelect} WHERE p.id = $1`, [id]);
   const [post] = await withAttendance(result.rows, req.user);
   res.json({ post });
 });
